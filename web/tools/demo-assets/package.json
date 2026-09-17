@@ -1,0 +1,17 @@
+{
+  "name": "@armenu/demo-assets",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node src/generate.ts",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@armenu/model-pipeline": "workspace:*",
+    "@gltf-transform/core": "catalog:",
+    "@types/node": "catalog:",
+    "@types/three": "catalog:",
+    "three": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,73 @@
+# promtool test rules deploy/observability/alert-rules.test.yml
+rule_files:
+  - alert-rules.yml
+
+evaluation_interval: 1m
+
+tests:
+  # Two instances report the same outbox; the oldest message ages by a minute a minute.
+  - interval: 1m
+    input_series:
+      - series: 'armenu_email_outbox_pending{service_instance_id="a"}'
+        values: '1x240'
+      - series: 'armenu_email_outbox_oldest_age_seconds{service_instance_id="a"}'
+        values: '0+60x240'
+      - series: 'armenu_email_outbox_oldest_age_seconds{service_instance_id="b"}'
+        values: '0+60x240'
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: ArMenuEmailDelayed
+        exp_alerts: []
+      - eval_time: 40m
+        alertname: ArMenuEmailDelayed
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: An e-mail has been waiting for more than 30 minutes; password resets are not arriving.
+              runbook: docs/operations/runbook.md#armenuemaildelayed
+      - eval_time: 2h
+        alertname: ArMenuEmailOutboxStuck
+        exp_alerts: []
+      - eval_time: 3h10m
+        alertname: ArMenuEmailOutboxStuck
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: An e-mail has outlived every retry; no worker is delivering the outbox.
+              runbook: docs/operations/runbook.md#armenuemailoutboxstuck
+      - eval_time: 3h10m
+        alertname: ArMenuMetricsMissing
+        exp_alerts: []
+
+  # A purge that is overdue for less than the hold time does not page anyone.
+  - interval: 1m
+    input_series:
+      - series: 'armenu_email_outbox_pending'
+        values: '0x120'
+      - series: 'armenu_tenants_purge_overdue'
+        values: '0x30 1x90'
+    alert_rule_test:
+      - eval_time: 1h
+        alertname: ArMenuPurgeOverdue
+        exp_alerts: []
+      - eval_time: 1h35m
+        alertname: ArMenuPurgeOverdue
+        exp_alerts:
+          - exp_labels: { severity: warning }
+            exp_annotations:
+              summary: A closed business's data is still kept a day after it should have been deleted.
+              runbook: docs/operations/runbook.md#armenupurgeoverdue
+
+  # No instance reporting at all.
+  - interval: 1m
+    input_series:
+      - series: 'http_server_request_duration_seconds_count{http_response_status_code="200"}'
+        values: '0+10x30'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: ArMenuMetricsMissing
+        exp_alerts:
+          - exp_labels: { severity: critical }
+            exp_annotations:
+              summary: No API instance has reported its backlog for 15 minutes.
+              runbook: docs/operations/runbook.md#armenumetricsmissing

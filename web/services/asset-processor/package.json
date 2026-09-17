@@ -1,0 +1,19 @@
+{
+  "name": "@armenu/asset-processor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=.env.development --watch src/main.ts",
+    "start": "node src/main.ts",
+    "typecheck": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@armenu/model-pipeline": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

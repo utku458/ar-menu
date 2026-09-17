@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#faf7f2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#141210" media="(prefers-color-scheme: dark)" />
+    <meta
+      name="description"
+      content="Restaurant menu with dishes you can place on your table in augmented reality."
+    />
+    <title>Menu · ArMenu</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Connections are opened while the page parses: the menu request and the dish posters go out right after. -->
+    <link rel="preconnect" href="%VITE_API_BASE_URL%" crossorigin />
+    <link rel="preconnect" href="%VITE_ASSETS_ORIGIN%" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>This menu needs JavaScript to open.</noscript>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

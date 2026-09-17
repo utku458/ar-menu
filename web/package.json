@@ -1,0 +1,35 @@
+{
+  "name": "armenu-web",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.4.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @armenu/guest dev",
+    "build": "pnpm --recursive build",
+    "typecheck": "pnpm --recursive typecheck",
+    "test": "pnpm --recursive test",
+    "e2e": "pnpm --filter @armenu/guest --filter @armenu/dashboard --workspace-concurrency=1 e2e",
+    "lint": "eslint --cache --cache-location node_modules/.cache/eslint/ .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "generate:api": "pnpm --filter @armenu/api-client generate",
+    "generate:demo-assets": "pnpm --filter @armenu/demo-assets generate",
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@tanstack/eslint-plugin-query": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-jsx-a11y": "catalog:",
+    "eslint-plugin-react-hooks": "catalog:",
+    "eslint-plugin-react-refresh": "catalog:",
+    "globals": "catalog:",
+    "prettier": "catalog:",
+    "prettier-plugin-tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:"
+  }
+}

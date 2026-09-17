@@ -1,0 +1,77 @@
+name: armenu
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: armenu-postgres
+    environment:
+      POSTGRES_DB: armenu
+      # Schema owner: used only to apply migrations. The API connects as the unprivileged `armenu_app` role.
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      # PostgreSQL 18+ images keep versioned data directories under /var/lib/postgresql.
+      - postgres-data:/var/lib/postgresql
+      - ./deploy/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d armenu"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  storage:
+    # S3-compatible object storage standing in for S3 and the asset CDN. deploy/storage/s3.json holds the API's
+    # development credentials and makes only the published assets bucket publicly readable. The API creates the
+    # buckets, their CORS rules and the demo files on startup in Development.
+    image: chrislusf/seaweedfs:4.47
+    container_name: armenu-storage
+    command: server -s3 -s3.config=/etc/seaweedfs/s3.json -dir=/data -master.volumeSizeLimitMB=256 -volume.max=100
+    ports:
+      - "8333:8333"
+    volumes:
+      - storage-data:/data
+      - ./deploy/storage/s3.json:/etc/seaweedfs/s3.json:ro
+
+  mailpit:
+    # Catches every e-mail the API sends (team invitations): read them at http://localhost:8025.
+    image: axllent/mailpit:v1.31
+    container_name: armenu-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  aspire-dashboard:
+    # Optional (docker compose --profile observability up): traces, metrics and logs of the API at http://localhost:18888.
+    # Start the API with OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 to send them here.
+    profiles: [observability]
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:13.5
+    container_name: armenu-aspire-dashboard
+    environment:
+      # Local only: the dashboard holds nothing but this machine's telemetry.
+      ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+    ports:
+      - "18888:18888"
+      - "4317:18889"
+
+  asset-processor:
+    # Optional (docker compose --profile processor up): `pnpm --dir web --filter @armenu/asset-processor dev` runs the
+    # same service with the local Chrome. In the container, storage is reached through the host, so the API must sign
+    # the processor's URLs for that address: Storage__InternalServiceUrl=http://host.docker.internal:8333
+    profiles: [processor]
+    build:
+      context: ./web
+      dockerfile: services/asset-processor/Dockerfile
+    container_name: armenu-asset-processor
+    environment:
+      ASSET_PROCESSOR_TOKEN: armenu-dev-processor-token-change-me-in-production
+      ASSET_PROCESSOR_STORAGE_ORIGINS: http://host.docker.internal:8333
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5090:5090"
+
+volumes:
+  postgres-data:
+  storage-data:

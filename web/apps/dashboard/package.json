@@ -1,0 +1,44 @@
+{
+  "name": "@armenu/dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:local": "vite build --mode development --outDir dist-local",
+    "preview:local": "vite preview --mode development --outDir dist-local --port 5174 --strictPort",
+    "build:e2e": "vite build --mode e2e --outDir dist-e2e",
+    "preview:e2e": "vite preview --mode e2e --outDir dist-e2e --port 4175 --strictPort",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@armenu/api-client": "workspace:*",
+    "@armenu/ar-viewer": "workspace:*",
+    "@armenu/locale": "workspace:*",
+    "@tanstack/react-query": "catalog:",
+    "@tanstack/react-router": "catalog:",
+    "react": "catalog:",
+    "react-aria-components": "catalog:",
+    "react-dom": "catalog:",
+    "uqr": "catalog:"
+  },
+  "devDependencies": {
+    "@armenu/web-security": "workspace:*",
+    "@axe-core/playwright": "catalog:",
+    "@babel/core": "catalog:",
+    "@playwright/test": "catalog:",
+    "@rolldown/plugin-babel": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "babel-plugin-react-compiler": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

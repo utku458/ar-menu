@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\ArMenu.Api\ArMenu.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Testcontainers.PostgreSql" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Same bootstrap script as docker-compose: tests run against exactly the roles developers use locally. -->
+    <None Include="..\..\deploy\postgres\init\01-create-app-role.sql" Link="Database\01-create-app-role.sql" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Same storage identities as docker-compose: the API's credentials and public read on the assets bucket only. -->
+    <None Include="..\..\deploy\storage\s3.json" Link="Storage\s3.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,160 @@
+# The whole platform as it runs in production, on one machine: the images CI builds, the API in the Production
+# environment, schema changes applied by the migration bundle, telemetry going to a collector. For trying a release
+# end to end before it ships; not a hosting setup (no TLS, local credentials).
+#
+#   docker compose -f deploy/compose.production.yml up --build --detach
+#
+#   Guest menus   http://localhost:8081/m/{slug}
+#   Dashboard     http://localhost:8082
+#   API           http://localhost:8080
+#   Storage       http://localhost:18333
+#   E-mail        http://localhost:18025 (Mailpit)
+#   Telemetry     http://localhost:18888 (Aspire Dashboard)
+#
+# Browsers reach storage at localhost:18333, the containers at storage:8333: the API signs browser uploads for the
+# first (Storage:PublicServiceUrl) and calls the second (Storage:ServiceUrl), as with a private network endpoint.
+name: armenu-production
+
+x-dotnet-telemetry: &telemetry
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18889
+  OTEL_RESOURCE_ATTRIBUTES: deployment.environment.name=local-production
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: armenu
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      # Creates the runtime role (armenu_app) without row-level security bypass; production provisions it with a secret.
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d armenu"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  storage:
+    image: chrislusf/seaweedfs:4.47
+    command: server -s3 -s3.config=/etc/seaweedfs/s3.json -dir=/data -master.volumeSizeLimitMB=256 -volume.max=100
+    ports:
+      - "18333:8333"
+    volumes:
+      - storage-data:/data
+      - ./storage/s3.json:/etc/seaweedfs/s3.json:ro
+
+  storage-setup:
+    # Buckets and their CORS rules are infrastructure, provisioned before the API runs (in the cloud: Terraform or the
+    # provider's console). Public read on the assets bucket comes from storage/s3.json, like a bucket policy.
+    image: amazon/aws-cli:2.33.0
+    depends_on: [storage]
+    environment:
+      AWS_ACCESS_KEY_ID: armenu
+      AWS_SECRET_ACCESS_KEY: armenu-dev-secret
+      AWS_DEFAULT_REGION: us-east-1
+    volumes:
+      - ./storage:/provision:ro
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        s3() { aws --endpoint-url http://storage:8333 "$$@"; }
+        until s3 s3api list-buckets > /dev/null 2>&1; do sleep 1; done
+        for bucket in armenu-uploads armenu-assets; do
+          until s3 s3api head-bucket --bucket "$$bucket" 2> /dev/null || s3 s3api create-bucket --bucket "$$bucket"; do sleep 1; done
+        done
+        s3 s3api put-bucket-cors --bucket armenu-uploads --cors-configuration file:///provision/cors-uploads.json
+        s3 s3api put-bucket-cors --bucket armenu-assets --cors-configuration file:///provision/cors-assets.json
+        echo "Storage provisioned."
+
+  migrations:
+    build:
+      context: ..
+      dockerfile: src/ArMenu.Api/Dockerfile
+      target: migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["--connection", "Host=postgres;Database=armenu;Username=postgres;Password=postgres"]
+
+  api:
+    build:
+      context: ..
+      dockerfile: src/ArMenu.Api/Dockerfile
+      target: api
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+      storage-setup:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+    environment:
+      <<: *telemetry
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__ArMenu: Host=postgres;Database=armenu;Username=armenu_app;Password=armenu_app
+      # Local only. Real deployments read secrets from their secret store.
+      Authentication__Jwt__SigningKey: bG9jYWwtcHJvZHVjdGlvbi1vbmx5LW5vdC1hLXNlY3JldCE=
+      Assets__PublicBaseUrl: http://localhost:18333/armenu-assets/
+      Storage__ServiceUrl: http://storage:8333
+      Storage__PublicServiceUrl: http://localhost:18333
+      Storage__AccessKey: armenu
+      Storage__SecretKey: armenu-dev-secret
+      Storage__ForcePathStyle: "true"
+      AssetProcessor__Url: http://asset-processor:5090/
+      AssetProcessor__Token: local-production-processor-token-not-a-secret
+      Email__Host: mailpit
+      Email__Port: "1025"
+      Email__Security: None
+      Dashboard__Url: http://localhost:8082/
+      Cors__AllowedOrigins__0: http://localhost:8081
+      Cors__AllowedOrigins__1: http://localhost:8082
+
+  asset-processor:
+    build:
+      context: ../web
+      dockerfile: services/asset-processor/Dockerfile
+    environment:
+      ASSET_PROCESSOR_TOKEN: local-production-processor-token-not-a-secret
+      ASSET_PROCESSOR_STORAGE_ORIGINS: http://storage:8333
+
+  guest:
+    build:
+      context: ../web
+      dockerfile: apps/Dockerfile
+      args:
+        APP: guest
+        VITE_API_BASE_URL: http://localhost:8080
+        VITE_ASSETS_ORIGIN: http://localhost:18333
+    ports:
+      - "8081:8080"
+
+  dashboard:
+    build:
+      context: ../web
+      dockerfile: apps/Dockerfile
+      args:
+        APP: dashboard
+        VITE_API_BASE_URL: http://localhost:8080
+        VITE_GUEST_MENU_BASE_URL: http://localhost:8081/m/
+        VITE_STORAGE_ORIGINS: http://localhost:18333
+    ports:
+      - "8082:8080"
+
+  mailpit:
+    image: axllent/mailpit:v1.31
+    ports:
+      - "18025:8025"
+
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:13.5
+    environment:
+      ASPIRE_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"
+    ports:
+      - "18888:18888"
+
+volumes:
+  postgres-data:
+  storage-data:

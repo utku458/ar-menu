@@ -1,0 +1,36 @@
+{
+  "jobId": "01995a7e-3c1b-7d2e-9f40-6b8a1c2d3e4f",
+  "source": {
+    "url": "https://storage.example.com/armenu-uploads/sources/0198a1f20000700080000000000000aa/01995a7e3c1b7d2e9f406b8a1c2d3e4f.glb?X-Amz-Signature=example"
+  },
+  "outputs": {
+    "model": {
+      "url": "https://storage.example.com/armenu-assets/tenants/0198a1f20000700080000000000000aa/assets/01995a7e3c1b7d2e9f406b8a1c2d3e4f.glb?X-Amz-Signature=example",
+      "headers": {
+        "Content-Type": "model/gltf-binary",
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    "sceneViewerModel": {
+      "url": "https://storage.example.com/armenu-assets/tenants/0198a1f20000700080000000000000aa/assets/01995a7e3c1b7d2e9f406b8a1c2d3e4f.scene-viewer.glb?X-Amz-Signature=example",
+      "headers": {
+        "Content-Type": "model/gltf-binary",
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    "appleModel": {
+      "url": "https://storage.example.com/armenu-assets/tenants/0198a1f20000700080000000000000aa/assets/01995a7e3c1b7d2e9f406b8a1c2d3e4f.usdz?X-Amz-Signature=example",
+      "headers": {
+        "Content-Type": "model/vnd.usdz+zip",
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    "poster": {
+      "url": "https://storage.example.com/armenu-assets/tenants/0198a1f20000700080000000000000aa/assets/01995a7e3c1b7d2e9f406b8a1c2d3e4f.webp?X-Amz-Signature=example",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    }
+  }
+}

@@ -1,0 +1,105 @@
+# Alert rules for Prometheus (or anything that reads its rule format, such as Grafana Mimir or Thanos).
+#
+# The API exports OpenTelemetry metrics over OTLP. Received by Prometheus' OTLP endpoint (or an OpenTelemetry Collector
+# with the Prometheus exporter) they get Prometheus names: dots become underscores, a unit of seconds adds "_seconds"
+# and counters get "_total". The runbook explains every alert: docs/operations/runbook.md.
+#
+# Backlog gauges are reported by every API instance from the same database, so rules take max(), never sum().
+groups:
+  - name: armenu-availability
+    rules:
+      - alert: ArMenuMetricsMissing
+        expr: absent(armenu_email_outbox_pending)
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: No API instance has reported its backlog for 15 minutes.
+          runbook: docs/operations/runbook.md#armenumetricsmissing
+
+      - alert: ArMenuServerErrors
+        expr: |
+          sum(rate(http_server_request_duration_seconds_count{http_response_status_code=~"5.."}[10m]))
+            / sum(rate(http_server_request_duration_seconds_count[10m])) > 0.02
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: More than 2% of API requests fail with a server error.
+          runbook: docs/operations/runbook.md#armenuservererrors
+
+      - alert: ArMenuSlowRequests
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(armenu_use_case_duration_seconds_bucket[15m]))) > 1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: One in twenty commands or queries takes longer than a second.
+          runbook: docs/operations/runbook.md#armenuslowrequests
+
+  - name: armenu-email
+    rules:
+      # Retries end 2 h 36 min after a message was queued; a message older than that should have been given up on.
+      - alert: ArMenuEmailDelayed
+        expr: max(armenu_email_outbox_oldest_age_seconds) > 1800
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: An e-mail has been waiting for more than 30 minutes; password resets are not arriving.
+          runbook: docs/operations/runbook.md#armenuemaildelayed
+
+      - alert: ArMenuEmailOutboxStuck
+        expr: max(armenu_email_outbox_oldest_age_seconds) > 10800
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: An e-mail has outlived every retry; no worker is delivering the outbox.
+          runbook: docs/operations/runbook.md#armenuemailoutboxstuck
+
+      - alert: ArMenuEmailsFailing
+        expr: |
+          sum(rate(armenu_email_messages_total{armenu_outcome="failed"}[15m]))
+            / sum(rate(armenu_email_messages_total[15m])) > 0.2
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: More than one e-mail in five is refused by the mail server.
+          runbook: docs/operations/runbook.md#armenuemailsfailing
+
+  - name: armenu-models
+    rules:
+      - alert: ArMenuModelProcessingOverdue
+        expr: max(armenu_ar_model_processing_queue_overdue_seconds) > 600
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: A 3D model has been due for processing for more than 10 minutes.
+          runbook: docs/operations/runbook.md#armenumodelprocessingoverdue
+
+      - alert: ArMenuModelProcessingFailing
+        expr: |
+          sum(rate(armenu_ar_model_processing_attempts_total{armenu_outcome=~"retrying|failed"}[30m]))
+            / sum(rate(armenu_ar_model_processing_attempts_total[30m])) > 0.25
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: More than a quarter of processing attempts fail for reasons other than the file itself.
+          runbook: docs/operations/runbook.md#armenumodelprocessingfailing
+
+  - name: armenu-retention
+    rules:
+      # Businesses were told their data goes after 30 days; keeping it longer breaks that promise.
+      - alert: ArMenuPurgeOverdue
+        expr: max(armenu_tenants_purge_overdue) > 0
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: A closed business's data is still kept a day after it should have been deleted.
+          runbook: docs/operations/runbook.md#armenupurgeoverdue
