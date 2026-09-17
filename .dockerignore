@@ -1,0 +1,14 @@
+# Context of the API image (src/ArMenu.Api/Dockerfile). The web images build from web/ with their own ignore file.
+**/bin
+**/obj
+**/node_modules
+.git
+.claude
+.idea
+.vs
+assets
+docs
+tests
+web
+**/*.user
+**/.env*

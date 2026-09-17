@@ -1,0 +1,27 @@
+{
+  "report": {
+    "source": {
+      "triangles": 412000,
+      "vertices": 208400,
+      "materials": 2,
+      "textures": 3,
+      "maxTextureSize": 4096
+    },
+    "optimized": {
+      "triangles": 99620,
+      "vertices": 51250,
+      "materials": 2,
+      "textures": 3,
+      "maxTextureSize": 2048
+    },
+    "files": {
+      "source": 18350211,
+      "model": 1342877,
+      "sceneViewerModel": 3921064,
+      "appleModel": 4102345,
+      "poster": 38112
+    },
+    "dimensions": { "width": 0.182, "height": 0.114, "depth": 0.179 },
+    "warnings": ["model.simplified", "model.textures_downscaled"]
+  }
+}

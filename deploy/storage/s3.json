@@ -1,0 +1,13 @@
+{
+  "identities": [
+    {
+      "name": "armenu-api",
+      "credentials": [{ "accessKey": "armenu", "secretKey": "armenu-dev-secret" }],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    },
+    {
+      "name": "anonymous",
+      "actions": ["Read:armenu-assets"]
+    }
+  ]
+}

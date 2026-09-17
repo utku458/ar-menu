@@ -1,0 +1,175 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  CI: "true"
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+
+jobs:
+  dotnet:
+    name: .NET build and tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore && dotnet tool restore
+
+      - name: Check formatting
+        run: dotnet format --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      # Integration tests start PostgreSQL, SeaweedFS and Mailpit with Testcontainers (Docker is on the runner).
+      # With CI=true, a drifted OpenAPI contract fails instead of being rewritten.
+      - name: Test
+        run: dotnet test --configuration Release --no-build
+
+      - name: Migration bundle builds
+        run: >
+          dotnet ef migrations bundle --configuration Release --no-build
+          --project src/ArMenu.Infrastructure --startup-project src/ArMenu.Infrastructure
+          --output artifacts/efbundle
+
+  web:
+    name: Web verify and end-to-end tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: API types match the committed contract
+        run: pnpm generate:api && git diff --exit-code -- packages/api-client/src/schema.gen.ts
+
+      # Formatting, lint, types, unit tests (the model pipeline renders in the runner's Google Chrome) and builds,
+      # including the guest app's initial JavaScript budget.
+      - name: Verify
+        run: pnpm verify
+
+      - name: Install Playwright browser
+        run: pnpm --filter @armenu/guest exec playwright install --with-deps chromium
+
+      # Both apps run against their production builds, served with the production security headers.
+      - name: End-to-end tests
+        run: pnpm e2e
+
+      - name: Upload Playwright reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-reports
+          path: web/apps/*/playwright-report
+          retention-days: 7
+
+  alerts:
+    name: Alert rules
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      # The runbook links every alert; rules that do not parse, or fire at the wrong time, page nobody or everybody.
+      - name: Check and test alert rules
+        run: |
+          docker run --rm --entrypoint promtool -v "$PWD/deploy/observability:/rules:ro" -w /rules \
+            prom/prometheus:v3.7.3 check rules alert-rules.yml
+          docker run --rm --entrypoint promtool -v "$PWD/deploy/observability:/rules:ro" -w /rules \
+            prom/prometheus:v3.7.3 test rules alert-rules.test.yml
+
+  images:
+    name: Container image (${{ matrix.image }})
+    needs: [dotnet, web, alerts]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: api
+            context: .
+            file: src/ArMenu.Api/Dockerfile
+            target: api
+          - image: migrations
+            context: .
+            file: src/ArMenu.Api/Dockerfile
+            target: migrations
+          - image: asset-processor
+            context: web
+            file: web/services/asset-processor/Dockerfile
+          - image: guest
+            context: web
+            file: web/apps/Dockerfile
+            build-args: |
+              APP=guest
+              VITE_API_BASE_URL=${{ vars.API_BASE_URL || 'https://api.armenu.app' }}
+              VITE_ASSETS_ORIGIN=${{ vars.ASSETS_ORIGIN || 'https://cdn.armenu.app' }}
+          - image: dashboard
+            context: web
+            file: web/apps/Dockerfile
+            build-args: |
+              APP=dashboard
+              VITE_API_BASE_URL=${{ vars.API_BASE_URL || 'https://api.armenu.app' }}
+              VITE_GUEST_MENU_BASE_URL=${{ vars.GUEST_MENU_BASE_URL || 'https://armenu.app/m/' }}
+              VITE_STORAGE_ORIGINS=${{ vars.STORAGE_ORIGINS || 'https://storage.armenu.app https://cdn.armenu.app' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Sign in to GitHub Container Registry
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Pull requests build the images; pushes to main also publish them, tagged with the commit.
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          target: ${{ matrix.target }}
+          build-args: ${{ matrix.build-args }}
+          push: ${{ github.event_name == 'push' }}
+          tags: ghcr.io/${{ github.repository_owner }}/armenu-${{ matrix.image }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}

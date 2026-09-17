@@ -1,0 +1,67 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+
+  --color-canvas: #f6f5f2;
+  --color-surface: #ffffff;
+  --color-sunken: #efece6;
+  --color-ink: #1c1917;
+  --color-ink-muted: #5e574f;
+  --color-line: #e2dcd2;
+  --color-accent: #a34a06;
+  --color-accent-hover: #8a3f05;
+  --color-accent-ink: #ffffff;
+  --color-accent-soft: #fbeedd;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  --color-success: #067647;
+  --color-success-soft: #e3f5ea;
+  /* Chart marks: validated against the surface (OKLCH lightness band and 3:1 contrast). */
+  --color-chart: #a34a06;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-canvas: #131110;
+    --color-surface: #1c1916;
+    --color-sunken: #25211d;
+    --color-ink: #f5f1eb;
+    --color-ink-muted: #b3aaa0;
+    --color-line: #36312b;
+    --color-accent: #f3a43b;
+    --color-accent-hover: #f6b764;
+    --color-accent-ink: #1c1917;
+    --color-accent-soft: #3a2a15;
+    --color-danger: #f97066;
+    --color-danger-soft: #3d1a17;
+    --color-success: #47cd89;
+    --color-success-soft: #14301f;
+    --color-chart: #c97a24;
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+
+  model-viewer {
+    --poster-color: transparent;
+  }
+}
+
+/* Table cards print as a grid, without the application around them. */
+@media print {
+  body {
+    background: white;
+  }
+
+  [data-print-hidden] {
+    display: none !important;
+  }
+}

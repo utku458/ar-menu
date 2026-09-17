@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The domain is the innermost layer: no project or package references, ever. -->
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ArMenu.Domain.UnitTests" />
+  </ItemGroup>
+
+</Project>

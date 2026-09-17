@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ArMenu.Api/ArMenu.Api.csproj" />
+    <Project Path="src/ArMenu.Application/ArMenu.Application.csproj" />
+    <Project Path="src/ArMenu.Domain/ArMenu.Domain.csproj" />
+    <Project Path="src/ArMenu.Infrastructure/ArMenu.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ArMenu.Api.UnitTests/ArMenu.Api.UnitTests.csproj" />
+    <Project Path="tests/ArMenu.Application.UnitTests/ArMenu.Application.UnitTests.csproj" />
+    <Project Path="tests/ArMenu.ArchitectureTests/ArMenu.ArchitectureTests.csproj" />
+    <Project Path="tests/ArMenu.Domain.UnitTests/ArMenu.Domain.UnitTests.csproj" />
+    <Project Path="tests/ArMenu.IntegrationTests/ArMenu.IntegrationTests.csproj" />
+  </Folder>
+</Solution>

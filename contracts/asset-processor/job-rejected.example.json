@@ -1,0 +1,7 @@
+{
+  "type": "https://armenu.app/problems/model-rejected",
+  "title": "The model cannot be published.",
+  "status": 422,
+  "code": "model.texture_unsupported",
+  "detail": "Texture 'crust' is image/ktx2."
+}

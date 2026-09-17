@@ -1,0 +1,92 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens. System fonts only: no font download stands between a QR scan and a readable menu, and every
+ * platform's native typefaces cover the scripts tourists read (Latin, Cyrillic, Arabic, CJK).
+ */
+@theme {
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+  --font-serif:
+    ui-serif, 'New York', 'Iowan Old Style', 'Noto Serif', Georgia, Cambria, 'Times New Roman', serif;
+
+  --color-canvas: #faf7f2;
+  --color-surface: #ffffff;
+  --color-stage: #f1ebe2;
+  --color-ink: #1c1917;
+  --color-ink-muted: #625a52;
+  --color-line: #e7dfd4;
+  --color-accent: #a34a06;
+  --color-accent-ink: #ffffff;
+  --color-accent-soft: #fbeedd;
+
+  /*
+   * The business's own colour, and the text the API says stays legible on it. Both are replaced at runtime by the
+   * menu's branding. It is only ever used to fill a shape, never to write on the page: a colour picked for a sign
+   * cannot be trusted to be readable as text on the menu's own background, while text on the filled shape is the
+   * pairing the API checked. Until a business picks one, the platform's own accent fills those shapes.
+   */
+  --color-brand: #a34a06;
+  --color-brand-ink: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-canvas: #141210;
+    --color-surface: #1c1916;
+    --color-stage: #25211d;
+    --color-ink: #f5f1eb;
+    --color-ink-muted: #b5aca2;
+    --color-line: #332e29;
+    --color-accent: #f3a43b;
+    --color-accent-ink: #1c1917;
+    --color-accent-soft: #3a2a15;
+    --color-brand: #f3a43b;
+    --color-brand-ink: #1c1917;
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: light dark;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+
+  /* The page behind an open sheet must not scroll. */
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  model-viewer {
+    --poster-color: transparent;
+    --progress-bar-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after,
+  ::backdrop {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

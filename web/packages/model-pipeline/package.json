@@ -1,0 +1,29 @@
+{
+  "name": "@armenu/model-pipeline",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@armenu/ar-viewer": "workspace:*",
+    "@gltf-transform/core": "catalog:",
+    "@gltf-transform/extensions": "catalog:",
+    "@gltf-transform/functions": "catalog:",
+    "@google/model-viewer": "catalog:",
+    "draco3dgltf": "catalog:",
+    "meshoptimizer": "catalog:",
+    "playwright-core": "catalog:",
+    "sharp": "catalog:"
+  },
+  "devDependencies": {
+    "@types/draco3dgltf": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

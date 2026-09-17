@@ -1,0 +1,10 @@
+{
+  "CORSRules": [
+    {
+      "AllowedMethods": ["PUT"],
+      "AllowedOrigins": ["http://localhost:8082"],
+      "AllowedHeaders": ["*"],
+      "MaxAgeSeconds": 600
+    }
+  ]
+}
