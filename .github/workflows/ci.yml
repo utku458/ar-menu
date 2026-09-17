@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v5
         with:
@@ -58,7 +58,7 @@ jobs:
       run:
         working-directory: web
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
         with:
@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # The runbook links every alert; rules that do not parse, or fire at the wrong time, page nobody or everybody.
       - name: Check and test alert rules
@@ -150,7 +150,7 @@ jobs:
               VITE_GUEST_MENU_BASE_URL=${{ vars.GUEST_MENU_BASE_URL || 'https://armenu.app/m/' }}
               VITE_STORAGE_ORIGINS=${{ vars.STORAGE_ORIGINS || 'https://storage.armenu.app https://cdn.armenu.app' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - uses: docker/setup-buildx-action@v3
 
