@@ -40,7 +40,7 @@ RUN pnpm --filter "@armenu/${APP}" build \
  && if [ "$APP" = guest ]; then mkdir -p /site/m && cp -R apps/guest/dist/. /site/m/; \
     else mkdir -p /site && cp -R apps/dashboard/dist/. /site/; fi
 
-FROM nginxinc/nginx-unprivileged:1.30-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
 ARG APP
 COPY apps/nginx/${APP}.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /security-headers.conf /etc/nginx/security-headers.conf
