@@ -17,7 +17,8 @@ set -eu
 
 : "${PGHOST:?set PGHOST to the public proxy host}"
 : "${PGPORT:?set PGPORT to the public proxy port}"
-: "${PGUSER:?set PGUSER (Railway's schema owner, usually postgres)}"
+# No apostrophes in these messages: inside ${VAR:?...} the shell reads one as an opening quote.
+: "${PGUSER:?set PGUSER to the schema owner, usually postgres}"
 : "${PGPASSWORD:?set PGPASSWORD}"
 : "${PGDATABASE:?set PGDATABASE (usually railway)}"
 : "${ARMENU_APP_PASSWORD:?set ARMENU_APP_PASSWORD to the password the API will connect with}"
