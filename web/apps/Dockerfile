@@ -42,7 +42,20 @@ RUN pnpm --filter "@armenu/${APP}" build \
 
 FROM nginxinc/nginx-unprivileged:1.30-alpine
 ARG APP
-COPY apps/nginx/${APP}.conf /etc/nginx/conf.d/default.conf
+# A template rather than a finished config: the image's entrypoint renders it at start-up, which is what lets one
+# dashboard image be pointed at an API origin it could not know at build time (see apps/nginx/dashboard.conf).
+#
+# The filter is the safety catch. Without it the entrypoint would substitute every environment variable it finds,
+# and an nginx config is full of $host, $uri and $request_uri, which are nginx's variables and not the shell's.
+#
+# NGINX_ENTRYPOINT_LOCAL_RESOLVERS makes the image publish the container's own nameservers as
+# NGINX_LOCAL_RESOLVERS before the templates are rendered, bracketing IPv6 addresses the way nginx wants them —
+# which is what a private network the API may move around on needs. The literal below is only a fallback.
+COPY apps/nginx/${APP}.conf /etc/nginx/templates/default.conf.template
+ENV API_ORIGIN="" \
+    NGINX_ENTRYPOINT_LOCAL_RESOLVERS=1 \
+    NGINX_LOCAL_RESOLVERS=127.0.0.11 \
+    NGINX_ENVSUBST_FILTER="^(API_ORIGIN|NGINX_LOCAL_RESOLVERS)$"
 COPY --from=build /security-headers.conf /etc/nginx/security-headers.conf
 COPY --from=build /site /usr/share/nginx/html
 EXPOSE 8080
