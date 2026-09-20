@@ -232,10 +232,15 @@ fails still ends.
 
 ## Notes
 
-**E-mail is optional.** Without `Email__*` configured, sign-up, sign-in and menu editing all work; only team
-invitations and password resets, which need to send a message, do not. Add `Email__Host`, `Email__Port`,
-`Email__Security`, `Email__Username` and `Email__Password` for any SMTP provider when you want them. A user can be
-marked verified by hand with `UPDATE "Users" SET "EmailVerifiedAt" = now() WHERE "Email" = '…';`.
+**`Email__Host` is required, even with no mail server.** The API validates its options at startup and refuses to
+start without it — `Email:Host is required.` is a crash, not a warning. Sending mail, on the other hand, really is
+optional: messages go to a durable outbox, so sign-up, sign-in and menu editing work whether or not delivery
+succeeds. Only team invitations and password resets need a message to arrive.
+
+For a deployment with no mail server, `Email__Host=localhost` satisfies the check and every send fails fast against
+a closed port; the outbox retries a bounded number of times and gives up. For real delivery, point `Email__Host`,
+`Email__Port`, `Email__Security`, `Email__UserName` and `Email__Password` at an SMTP provider. A user can be marked
+verified by hand with `UPDATE "Users" SET "EmailVerifiedAt" = now() WHERE "Email" = '…';`.
 
 **Production data has no demo menus.** The seeded demo restaurants exist only in the Development environment, so the
 first menu is one you create in the dashboard.
