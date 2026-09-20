@@ -205,6 +205,31 @@ Then open the dashboard, create an account, add a business and a menu, and open 
 `https://<guest-domain>/m/<slug>`. Sign in, wait a few minutes and reload the dashboard: if you are still signed in,
 the same-origin proxy is doing its job.
 
+## Serverless: what actually sleeps
+
+Railway can stop a service that has sent no outbound packet for five minutes and start it again when traffic
+arrives, including traffic over the private network (**Settings → Deploy → Serverless**). The setting is applied
+when a container is created, so enable it and then redeploy, or nothing changes.
+
+It is worth enabling on two of these six, and not on the rest:
+
+| Service           | Sleeps | Why                                                                                     |
+| ----------------- | ------ | --------------------------------------------------------------------------------------- |
+| `asset-processor` | yes    | Silent between jobs, and it is the expensive one — it carries a full Chromium            |
+| `dashboard`       | yes    | An idle nginx sends nothing                                                              |
+| `guest`           | avoid  | It sleeps, but the request that wakes a service can return 502 — here that is a guest scanning the QR code at a table |
+| `api`             | no     | Background workers poll the queue every five seconds and run the e-mail outbox and cleanup |
+| `postgres`        | no     | The API holds a connection pool open                                                     |
+| `storage`         | no     | SeaweedFS runs master and volume in one process and heartbeats between them              |
+
+`api` and `postgres` are therefore the floor of the bill, and no setting changes that: the API is a queue worker as
+much as a web server. Enabling Serverless on `asset-processor` is what keeps a headless browser from being billed
+for the 99 % of the month it has nothing to process.
+
+The first job after the processor has slept may fail while it cold-starts. That is handled: the dispatcher releases
+the job and retries it after `AssetProcessor:CrashRetryDelay` (30 seconds), counting attempts so a job that always
+fails still ends.
+
 ## Notes
 
 **E-mail is optional.** Without `Email__*` configured, sign-up, sign-in and menu editing all work; only team
@@ -215,6 +240,9 @@ marked verified by hand with `UPDATE "Users" SET "EmailVerifiedAt" = now() WHERE
 **Production data has no demo menus.** The seeded demo restaurants exist only in the Development environment, so the
 first menu is one you create in the dashboard.
 
-**Cost.** Six services plus a volume is more than the Hobby plan's monthly credit comfortably covers, and the asset
-processor is the expensive one: it carries a full Chromium and only does anything while a model is being processed.
-If the bill matters more than instant 3D processing, that is the service to scale to zero between uploads.
+**Cost.** Railway bills measured usage — RAM at $10/GB/month, CPU at $20/vCPU/month, volumes at $0.15/GB/month — and
+the Hobby plan's $5 subscription includes the first $5 of it. Six mostly-idle services land near that line: the
+rough shape is about $1.50 each for `api` and `postgres`, a little over $1 for `storage` and its volume, pennies for
+the two nginx services, and — with Serverless enabled — almost nothing for the asset processor, which would
+otherwise be the largest line on the invoice. Treat those as estimates and read the real numbers from each service's
+Metrics tab after a day; what is certain is that `api` and `postgres` cannot sleep and everything else is small.
