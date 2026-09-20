@@ -5,6 +5,7 @@ import { formatPrice } from '@armenu/locale';
 import { Badge } from '../../ui/Badge.tsx';
 import { CubeIcon } from '../../ui/icons.tsx';
 import { preloadArViewer } from '../ar/load-ar-viewer.ts';
+import { preloadItemSheet } from './load-item-sheet.ts';
 
 interface MenuItemCardProps {
   readonly item: PublicMenuItemResponse;
@@ -17,8 +18,14 @@ interface MenuItemCardProps {
 export function MenuItemCard({ item, currency, onOpen, isAboveTheFold }: MenuItemCardProps) {
   const { messages, culture } = useI18n();
   const posterUrl = item.arModel?.posterUrl ?? null;
-  // Hovering, focusing or touching a 3D dish starts fetching the 3D code before the tap completes.
-  const warmUp = item.arModel === null ? undefined : preloadArViewer;
+  // Hovering, focusing or touching a dish starts fetching the sheet (and, for a 3D dish, the 3D code) before the tap
+  // completes. Both imports are memoised by the browser, so repeated warm-ups cost nothing.
+  const warmUp = () => {
+    preloadItemSheet();
+    if (item.arModel !== null) {
+      preloadArViewer();
+    }
+  };
 
   return (
     <li className="relative flex gap-4 rounded-2xl border border-line bg-surface p-4 transition-colors hover:border-ink-muted/40 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent">

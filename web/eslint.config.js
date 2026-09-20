@@ -53,6 +53,29 @@ export default defineConfig(
   },
 
   {
+    // The guest app's startup JavaScript has a hard budget. `motion.*` components bundle every animation feature
+    // up front; `m.*` components inside <LazyMotion> load them on demand. LazyMotion's `strict` mode throws at
+    // runtime on a stray `motion.*`; this catches it before it ships.
+    files: ['apps/guest/src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'motion/react',
+              importNames: ['motion'],
+              message:
+                'Use `m` inside <MotionFeatures>: `motion` bundles every animation feature on startup.',
+            },
+            { name: 'framer-motion', message: "Import from 'motion/react'." },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
     files: [
       '**/*.config.{ts,js}',
       '**/vite-plugins/**',

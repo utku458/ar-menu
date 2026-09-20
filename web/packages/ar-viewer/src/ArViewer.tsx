@@ -1,6 +1,6 @@
 /// <reference path="./model-viewer-jsx.d.ts" />
 import { ModelViewerElement } from '@google/model-viewer';
-import { type ReactNode, use, useEffect, useEffectEvent, useRef } from 'react';
+import { type ReactNode, type Ref, use, useEffect, useEffectEvent, useImperativeHandle, useRef } from 'react';
 
 import { viewerPreset } from './preset.ts';
 
@@ -36,6 +36,25 @@ export interface ArViewerLoadDetails {
   readonly canActivateAR: boolean;
 }
 
+/**
+ * What the surrounding interface may do to the viewer.
+ *
+ * Deliberately narrow. Exposing the `<model-viewer>` element itself would let any consumer reach for its ~80
+ * attributes and quietly couple the app to the library, so this package hands out the four verbs the product
+ * actually needs and keeps the element private. Swapping the 3D implementation later is then a change inside this
+ * package rather than a search across the apps.
+ */
+export interface ArViewerControls {
+  /** Returns the dish to the framing every poster was rendered at. */
+  resetView(): void;
+  /** Turns the dish slowly on its own, as a display would. */
+  setAutoRotate(isRotating: boolean): void;
+  /** Starts augmented reality. Rejects when the device or the session refuses. */
+  activateAr(): Promise<void>;
+  /** False on desktops and anywhere without an AR mode. */
+  canActivateAr(): boolean;
+}
+
 export interface ArViewerProps {
   /** Binary glTF for the in-page 3D view and WebXR. */
   readonly src: string;
@@ -51,6 +70,8 @@ export interface ArViewerProps {
   /** Accessible description of the model. */
   readonly alt: string;
   readonly className?: string | undefined;
+  /** Receives the control surface once the viewer is mounted, for overlay buttons outside the element. */
+  readonly controlsRef?: Ref<ArViewerControls | null>;
   /** Slotted content, e.g. `<button slot="ar-button">` and `<div slot="progress-bar">`. */
   readonly children?: ReactNode;
   readonly onProgress?: (progress: number) => void;
@@ -72,6 +93,7 @@ export function ArViewer({
   poster,
   alt,
   className,
+  controlsRef,
   children,
   onProgress,
   onLoad,
@@ -80,6 +102,33 @@ export function ArViewer({
 }: ArViewerProps) {
   const viewerRef = useRef<ModelViewerElement>(null);
   const modelSrc = sceneViewerSrc !== undefined && use(isSceneViewerDevice()) ? sceneViewerSrc : src;
+
+  useImperativeHandle(
+    controlsRef,
+    (): ArViewerControls => ({
+      resetView() {
+        const viewer = viewerRef.current;
+        if (viewer !== null) {
+          // Both halves matter: the orbit puts the camera back, and the turntable reset undoes accumulated spin.
+          viewer.cameraOrbit = viewerPreset.cameraOrbit;
+          viewer.resetTurntableRotation();
+        }
+      },
+      setAutoRotate(isRotating) {
+        const viewer = viewerRef.current;
+        if (viewer !== null) {
+          viewer.autoRotate = isRotating;
+        }
+      },
+      async activateAr() {
+        await viewerRef.current?.activateAR();
+      },
+      canActivateAr() {
+        return viewerRef.current?.canActivateAR ?? false;
+      },
+    }),
+    [],
+  );
 
   const handleProgress = useEffectEvent((event: Event) => {
     onProgress?.((event as CustomEvent<{ totalProgress: number }>).detail.totalProgress);

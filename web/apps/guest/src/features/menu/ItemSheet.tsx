@@ -1,64 +1,55 @@
 import type { PublicMenuItemResponse } from '@armenu/api-client';
-import { useEffect, useRef } from 'react';
 
 import { useI18n } from '../../i18n/i18n-context.ts';
-import { formatPrice } from '@armenu/locale';
 import { Badge } from '../../ui/Badge.tsx';
 import { cx } from '../../ui/cx.ts';
 import { CloseIcon } from '../../ui/icons.tsx';
+import { MotionFeatures } from '../../ui/MotionFeatures.tsx';
+import { Sheet } from '../../ui/Sheet.tsx';
 import { ArStage } from '../ar/ArStage.tsx';
+import { MacroBreakdown } from './MacroBreakdown.tsx';
+import type { Nutrition } from './nutrition.ts';
+import { OrderBar } from './OrderBar.tsx';
 
-interface ItemSheetProps {
+const TITLE_ID = 'item-sheet-title';
+
+export interface ItemSheetProps {
   /** The open dish; undefined closes the sheet. */
   readonly item: PublicMenuItemResponse | undefined;
   readonly currency: string;
   readonly onClose: () => void;
+  /** Nutrition, once the API carries it (see nutrition.ts). The section is omitted until then. */
+  readonly nutrition?: Nutrition | undefined;
+  /** Supplied only where an ordering backend exists; see OrderBar. */
+  readonly onOrder?: ((itemId: string) => void) | undefined;
 }
 
 /**
- * Dish details in a native modal <dialog>: focus trapping, Escape, inert background and the top layer come from the
- * browser instead of JavaScript. A bottom sheet on phones, a centered card on larger screens.
+ * Dish details in a swipeable sheet.
+ *
+ * This component owns composition and nothing else: the modal mechanics live in `<Sheet>`, the 3D and AR lifecycle
+ * in `<ArStage>`, the figures in `<MacroBreakdown>`, the price and call to action in `<OrderBar>`. Each of those is
+ * independently renderable and independently testable, and this file reads as the layout of the screen — which is
+ * the point, because the layout is the part that changes when the product does.
+ *
+ * `<MotionFeatures>` wraps here rather than at the app root on purpose. This module *is* the dish sheet's lazy chunk
+ * (see load-item-sheet.ts), so Framer Motion, which nothing else in the app uses, never reaches the startup bundle.
  */
-export function ItemSheet({ item, currency, onClose }: ItemSheetProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const isOpen = item !== undefined;
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (dialog === null) {
-      return;
-    }
-
-    if (isOpen && !dialog.open) {
-      dialog.showModal();
-    } else if (!isOpen && dialog.open) {
-      dialog.close();
-    }
-  }, [isOpen]);
-
+export function ItemSheet({ item, currency, onClose, nutrition, onOrder }: ItemSheetProps) {
   return (
-    // Backdrop clicks are a pointer shortcut; keyboards close the sheet with Escape or the close button.
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
-    <dialog
-      ref={dialogRef}
-      aria-labelledby="item-sheet-title"
-      // Escape (or the browser's own dismissal) closed the dialog: bring the URL in line. When the URL change closed
-      // it, there is no item any more and nothing to do.
-      onClose={() => {
-        if (isOpen) {
-          onClose();
-        }
-      }}
-      onClick={(event) => {
-        // A click on the dialog element itself, not its content, is a click on the backdrop.
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-t-3xl bg-surface text-ink shadow-2xl transition-[translate,opacity] duration-300 ease-out backdrop:bg-black/50 sm:m-auto sm:max-w-lg sm:rounded-3xl starting:open:translate-y-10 starting:open:opacity-0"
-    >
-      {item !== undefined && <ItemDetails item={item} currency={currency} onClose={onClose} />}
-    </dialog>
+    <MotionFeatures>
+      <Sheet isOpen={item !== undefined} labelledBy={TITLE_ID} onClose={onClose}>
+        {item !== undefined && (
+          <ItemDetails
+            item={item}
+            currency={currency}
+            onClose={onClose}
+            nutrition={nutrition}
+            onOrder={onOrder}
+          />
+        )}
+      </Sheet>
+    </MotionFeatures>
   );
 }
 
@@ -66,45 +57,54 @@ function ItemDetails({
   item,
   currency,
   onClose,
+  nutrition,
+  onOrder,
 }: {
   item: PublicMenuItemResponse;
   currency: string;
   onClose: () => void;
+  nutrition: Nutrition | undefined;
+  onOrder: ((itemId: string) => void) | undefined;
 }) {
-  const { messages, culture } = useI18n();
+  const { messages } = useI18n();
+  const hasModel = item.arModel !== null;
 
   return (
-    <article>
+    <article className="flex min-h-0 flex-col">
+      {/*
+        Must stay the first focusable element in the sheet: `showModal()` focuses the dialog's first focusable
+        descendant, so a keyboard or screen-reader guest starts at the way out rather than inside a 3D viewer. Over
+        the stage it becomes a glass chip, because the pixels behind it are a dish, not a surface.
+      */}
       <button
         type="button"
         onClick={onClose}
         aria-label={messages.close}
-        className="absolute end-3 top-3 z-10 grid size-11 place-items-center rounded-full bg-surface/90 text-ink shadow-md backdrop-blur"
+        data-over-media={hasModel ? '' : undefined}
+        className={cx(
+          'absolute end-4 top-4 z-30 grid size-10 place-items-center rounded-full',
+          hasModel ? 'glass-over-media' : 'glass text-ink shadow-panel',
+        )}
       >
         <CloseIcon className="size-5" />
       </button>
 
-      {item.arModel !== null && <ArStage model={item.arModel} itemId={item.id} dishName={item.name} />}
+      {hasModel && item.arModel !== null && (
+        <ArStage model={item.arModel} itemId={item.id} dishName={item.name} />
+      )}
 
-      <div className={cx('px-6 pb-8', item.arModel === null ? 'pt-6' : 'pt-4')}>
-        <div className={cx('flex items-start justify-between gap-4', item.arModel === null && 'pe-12')}>
-          <h2 id="item-sheet-title" className="font-serif text-2xl leading-tight text-balance">
-            {item.name}
-          </h2>
-          <p className="shrink-0 pt-1 text-lg font-semibold tabular-nums">
-            {formatPrice(item.price, currency, culture)}
-          </p>
-        </div>
-        {!item.isAvailable && (
-          <p className="mt-3">
-            <Badge tone="muted">{messages.soldOut}</Badge>
-          </p>
-        )}
-        {item.description !== null && (
-          <p className="mt-3 leading-relaxed text-ink-muted">{item.description}</p>
-        )}
-        {item.dietaryLabels.length > 0 && (
-          <p className="mt-4 flex flex-wrap gap-2">
+      {/*
+        Not animated on its own. The text rides in with the sheet at full opacity: a separate fade would make the
+        name, price and allergens — the reasons the sheet was opened — the last things on screen to become legible.
+      */}
+      <div className={cx('px-6 pb-2', hasModel ? 'pt-4' : 'pt-6')}>
+        <h2 id={TITLE_ID} className={cx('text-title', !hasModel && 'pe-12')}>
+          {item.name}
+        </h2>
+
+        {(item.dietaryLabels.length > 0 || !item.isAvailable) && (
+          <p className="mt-3 flex flex-wrap gap-2">
+            {!item.isAvailable && <Badge tone="muted">{messages.soldOut}</Badge>}
             {item.dietaryLabels.map((label) => (
               <Badge key={label} tone="accent">
                 {messages.dietaryLabelNames[label] ?? label}
@@ -112,7 +112,14 @@ function ItemDetails({
             ))}
           </p>
         )}
-        <section aria-labelledby="item-sheet-allergens" className="mt-5 rounded-2xl bg-stage px-4 py-3">
+
+        {item.description !== null && (
+          <p className="mt-3 leading-relaxed text-ink-muted">{item.description}</p>
+        )}
+
+        {nutrition !== undefined && <MacroBreakdown nutrition={nutrition} delay={0.12} />}
+
+        <section aria-labelledby="item-sheet-allergens" className="mt-6 rounded-panel bg-stage px-4 py-3">
           <h3 id="item-sheet-allergens" className="text-sm font-semibold">
             {messages.allergens}
           </h3>
@@ -128,6 +135,19 @@ function ItemDetails({
           )}
         </section>
       </div>
+
+      <OrderBar
+        price={item.price}
+        currency={currency}
+        isAvailable={item.isAvailable}
+        onOrder={
+          onOrder === undefined
+            ? undefined
+            : () => {
+                onOrder(item.id);
+              }
+        }
+      />
     </article>
   );
 }

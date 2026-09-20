@@ -15,10 +15,11 @@
   },
   "dependencies": {
     "@armenu/api-client": "workspace:*",
-    "@armenu/locale": "workspace:*",
     "@armenu/ar-viewer": "workspace:*",
+    "@armenu/locale": "workspace:*",
     "@tanstack/react-query": "catalog:",
     "@tanstack/react-router": "catalog:",
+    "motion": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

@@ -1,15 +1,15 @@
 import type { PublicMenuItemResponse, PublicMenuResponse } from '@armenu/api-client';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { getRouteApi, useLocation, useRouter } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 
 import { I18nProvider } from '../../i18n/I18nProvider.tsx';
 import { MenuEventsContext, trackerFor } from '../analytics/menu-events-context.ts';
 import { useDocumentTitle, useI18n } from '../../i18n/i18n-context.ts';
 import { applyBranding, clearBranding } from './branding.ts';
 import { CategoryNav } from './CategoryNav.tsx';
-import { ItemSheet } from './ItemSheet.tsx';
 import { savePreferredLanguage } from './language-preference.ts';
+import { loadItemSheet, preloadItemSheetWhenIdle } from './load-item-sheet.ts';
 import { LanguageSwitcher } from './LanguageSwitcher.tsx';
 import { filterMenu, noFilter } from './menu-filter.ts';
 import { MenuFilterBar } from './MenuFilterBar.tsx';
@@ -19,6 +19,8 @@ import { MenuSection } from './MenuSection.tsx';
 import { MenuLoadError, MenuSkeleton } from './MenuStates.tsx';
 
 const route = getRouteApi('/$tenant');
+
+const ItemSheet = lazy(async () => ({ default: (await loadItemSheet()).ItemSheet }));
 
 export function MenuPage() {
   const { tenant } = route.useParams();
@@ -69,6 +71,16 @@ function Menu({ menu, openItemId, table, isChangingLanguage }: MenuProps) {
       clearBranding(document.documentElement);
     };
   }, [accentColor, onAccentColor]);
+
+  // The sheet chunk arrives in idle time; see load-item-sheet.ts.
+  useEffect(() => preloadItemSheetWhenIdle(), []);
+
+  // Mounted the first time a dish opens and kept afterwards, so closing plays the sheet's exit animation instead of
+  // unmounting it mid-flight. Before that first open there is nothing to render and nothing to load.
+  const [isSheetMounted, setIsSheetMounted] = useState(openItemId !== undefined);
+  if (openItemId !== undefined && !isSheetMounted) {
+    setIsSheetMounted(true);
+  }
 
   const tracker = trackerFor(menu.tenant.slug);
   const openItemExists = findItem(menu, openItemId) !== undefined;
@@ -169,7 +181,12 @@ function Menu({ menu, openItemId, table, isChangingLanguage }: MenuProps) {
 
       <footer className="pb-10 text-center text-xs text-ink-muted">{messages.poweredBy}</footer>
 
-      <ItemSheet item={findItem(menu, openItemId)} currency={menu.tenant.currency} onClose={closeItem} />
+      {isSheetMounted && (
+        // No fallback: the chunk is normally preloaded, and a sheet that appears a moment late beats a spinner.
+        <Suspense fallback={null}>
+          <ItemSheet item={findItem(menu, openItemId)} currency={menu.tenant.currency} onClose={closeItem} />
+        </Suspense>
+      )}
     </MenuEventsContext>
   );
 }

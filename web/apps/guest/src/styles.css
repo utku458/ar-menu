@@ -1,23 +1,51 @@
 @import 'tailwindcss';
 
 /*
- * Design tokens. System fonts only: no font download stands between a QR scan and a readable menu, and every
- * platform's native typefaces cover the scripts tourists read (Latin, Cyrillic, Arabic, CJK).
+ * Design tokens — "Obsidian & Ember".
+ *
+ * Two ideas hold the system together:
+ *
+ *   1. Content colours (ink, surface, line) are calm and near-neutral, so photography and 3D dishes are the only
+ *      saturated things on screen.
+ *   2. Every accent exists twice: a *legible* one that text and icons may use, and a *luminous* one that may only
+ *      fill, glow or stroke. Spatial interfaces want glow; glow at text contrast is unreadable. Keeping them apart
+ *      in the token layer means a component physically cannot pick the pretty-but-illegible one for a label.
+ *
+ * System fonts only: no font download stands between a QR scan and a readable menu, every platform's native
+ * typefaces cover the scripts tourists read (Latin, Cyrillic, Arabic, CJK), and the content security policy pins
+ * font-src to 'self' anyway. The premium feel comes from the type *scale* and optical sizing below, not a webfont.
  */
 @theme {
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
   --font-serif:
     ui-serif, 'New York', 'Iowan Old Style', 'Noto Serif', Georgia, Cambria, 'Times New Roman', serif;
 
-  --color-canvas: #faf7f2;
+  /* Surfaces, light ("Porcelain"). */
+  --color-canvas: #f7f6f4;
   --color-surface: #ffffff;
-  --color-stage: #f1ebe2;
-  --color-ink: #1c1917;
-  --color-ink-muted: #625a52;
-  --color-line: #e7dfd4;
-  --color-accent: #a34a06;
+  --color-surface-raised: #ffffff;
+  --color-stage: #eceae6;
+  --color-ink: #12110f;
+  /*
+   * The lightest text colour there is: 7.1:1 on `surface`, 5.9:1 on `stage`. There is deliberately no fainter ink —
+   * a de-emphasised label that fails WCAG AA is a trap for the next component, so de-emphasis comes from size and
+   * weight instead of from lighter grey.
+   */
+  --color-ink-muted: #5d574f;
+  --color-line: #e3dfd8;
+
+  /*
+   * Ember. `accent` is contrast-checked for text on `canvas`/`surface` (5.5:1). `glow` is the same hue pushed to
+   * where it reads as light rather than ink — decorative only: fills, rings, shadows, gradient stops.
+   */
+  --color-accent: #b34700;
   --color-accent-ink: #ffffff;
-  --color-accent-soft: #fbeedd;
+  --color-accent-soft: #fbeade;
+  --color-glow: #ff8a3d;
+
+  /* Signal: the cool counterpoint that says "spatial" — scan frames, AR-ready states, depth cues. Never body text. */
+  --color-signal: #2f6bd8;
+  --color-signal-glow: #6aa3ff;
 
   /*
    * The business's own colour, and the text the API says stays legible on it. Both are replaced at runtime by the
@@ -25,23 +53,133 @@
    * cannot be trusted to be readable as text on the menu's own background, while text on the filled shape is the
    * pairing the API checked. Until a business picks one, the platform's own accent fills those shapes.
    */
-  --color-brand: #a34a06;
+  --color-brand: #b34700;
   --color-brand-ink: #ffffff;
+
+  /* A larger radius scale than Tailwind's default: spatial UI reads as rounded slabs, not cards with corners. */
+  --radius-sheet: 1.75rem;
+  --radius-panel: 1.25rem;
+  --radius-control: 0.875rem;
+
+  /*
+   * Elevation as light, not as a drop shadow. Two stacked shadows — a tight contact shadow and a wide ambient one —
+   * are what makes a floating control read as hovering above a surface rather than pasted onto it.
+   */
+  --shadow-panel:
+    0 1px 2px --alpha(var(--color-shadow) / 40%), 0 8px 24px -8px --alpha(var(--color-shadow) / 60%);
+  --shadow-float:
+    0 2px 6px --alpha(var(--color-shadow) / 45%), 0 18px 48px -12px --alpha(var(--color-shadow) / 70%);
+  --shadow-sheet: 0 -1px 0 0 var(--color-glass-line), 0 -24px 64px -16px --alpha(var(--color-shadow) / 75%);
+
+  /*
+   * The two ambient loops of the AR reticle. Both animate transform/opacity only, so they run on the compositor
+   * while the device is busy decoding a model and starting its camera pipeline.
+   */
+  --animate-sweep: sweep 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  --animate-breathe: breathe 3.2s ease-in-out infinite;
+
+  @keyframes sweep {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    12%,
+    88% {
+      opacity: 1;
+    }
+    /* The sweeping element spans the full frame, so a percentage translate is exactly one frame height. */
+    100% {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes breathe {
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.85;
+    }
+    50% {
+      transform: scale(1.025);
+      opacity: 1;
+    }
+  }
+}
+
+/*
+ * Spatial values that are not Tailwind scales. Glass is three separate things — a tint, a hairline and a blur
+ * radius — and they have to move together between themes, so they live as one group rather than as utilities.
+ */
+:root {
+  --color-shadow: oklch(0% 0 0);
+  --color-glass: --alpha(#ffffff / 72%);
+  --color-glass-strong: --alpha(#ffffff / 86%);
+  --color-glass-line: --alpha(#12110f / 8%);
+  --glass-blur: 20px;
+  --glass-saturate: 180%;
+
+  /* Scrims that keep white text legible over an unknown photograph or 3D render. */
+  --scrim-top: linear-gradient(to bottom, --alpha(#000 / 55%), transparent 60%);
+  --scrim-bottom: linear-gradient(to top, --alpha(#000 / 65%), transparent 70%);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-canvas: #141210;
-    --color-surface: #1c1916;
-    --color-stage: #25211d;
-    --color-ink: #f5f1eb;
-    --color-ink-muted: #b5aca2;
-    --color-line: #332e29;
-    --color-accent: #f3a43b;
-    --color-accent-ink: #1c1917;
-    --color-accent-soft: #3a2a15;
-    --color-brand: #f3a43b;
-    --color-brand-ink: #1c1917;
+    --color-canvas: #0a0a0b;
+    --color-surface: #141415;
+    --color-surface-raised: #1c1c1e;
+    --color-stage: #1f1f21;
+    --color-ink: #f7f6f4;
+    --color-ink-muted: #a8a29a;
+    --color-line: #2a2a2d;
+
+    --color-accent: #ff9a4d;
+    --color-accent-ink: #12110f;
+    --color-accent-soft: #38220f;
+    --color-glow: #ff8a3d;
+
+    --color-signal: #7aabff;
+    --color-signal-glow: #6aa3ff;
+
+    --color-brand: #ff9a4d;
+    --color-brand-ink: #12110f;
+
+    --color-glass: --alpha(#ffffff / 8%);
+    --color-glass-strong: --alpha(#ffffff / 14%);
+    --color-glass-line: --alpha(#ffffff / 12%);
+  }
+}
+
+/*
+ * One utility, used by every floating control and panel. Written once here because the fallback matters: without
+ * backdrop-filter support the tint alone is too transparent to read against, so the tint is swapped for an opaque
+ * surface rather than left translucent.
+ */
+@utility glass {
+  background-color: var(--color-glass);
+  border: 1px solid var(--color-glass-line);
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: var(--color-surface-raised);
+  }
+}
+
+/* The same, sitting on unknown imagery: opaque enough for white text without hiding what is behind it. */
+@utility glass-over-media {
+  background-color: --alpha(#000 / 40%);
+  border: 1px solid --alpha(#ffffff / 18%);
+  color: #ffffff;
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    background-color: --alpha(#000 / 28%);
   }
 }
 
@@ -50,6 +188,37 @@
 
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Optical sizing for display type: tighter tracking as headings grow, which is what makes large type look set. */
+@utility text-display {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 1.4rem + 2.6vw, 2.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+}
+
+@utility text-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.375rem, 1.15rem + 1.1vw, 1.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+/* The small all-caps label used for eyebrows. Latin-only affordance: RTL scripts get normal tracking and case. */
+@utility text-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+
+  &:dir(rtl) {
+    letter-spacing: normal;
+    text-transform: none;
   }
 }
 
@@ -72,6 +241,13 @@
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Over media the accent may be invisible; white with a dark companion ring is legible on anything. */
+  [data-over-media] :focus-visible {
+    outline-color: #ffffff;
+    box-shadow: 0 0 0 4px --alpha(#000 / 45%);
   }
 
   model-viewer {
@@ -80,6 +256,10 @@
   }
 }
 
+/*
+ * Motion. Framer Motion reads this preference itself (MotionConfig reducedMotion="user"); these rules cover the
+ * CSS-driven ambience — the scan sweep, the glow pulse — which no JavaScript is watching.
+ */
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

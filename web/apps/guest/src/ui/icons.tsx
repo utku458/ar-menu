@@ -63,6 +63,26 @@ export function SearchIcon(props: IconProps) {
   );
 }
 
+/** Auto-rotate: a turntable arrow around the dish. */
+export function RotateIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1" />
+      <path d="M20.5 4v5h-5" />
+    </Icon>
+  );
+}
+
+/** Reset the framing: a viewfinder returning to centre. */
+export function RecenterIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="3.25" />
+      <path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21" />
+    </Icon>
+  );
+}
+
 export function SlidersIcon(props: IconProps) {
   return (
     <Icon {...props}>

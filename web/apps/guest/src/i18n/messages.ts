@@ -18,7 +18,27 @@ export interface Messages {
   readonly modelFailed: string;
   readonly arOnPhone: string;
   readonly arFailed: string;
+  readonly arFailedBody: string;
   readonly dragToTurn: string;
+  /* The AR handoff, in the order a guest meets it. `arStarting`/`arAllowCamera` are the in-page WebXR path, where
+     the browser is about to ask for the camera; `arOpening`/`arHandoffBody` are the path where another app takes
+     over the screen and the guest should expect this one to disappear. */
+  readonly arStarting: string;
+  readonly arAllowCamera: string;
+  readonly arOpening: (dish: string) => string;
+  readonly arHandoffBody: string;
+  readonly arPointAtTable: string;
+  readonly arPointAtTableBody: string;
+  readonly autoRotate: string;
+  readonly recenter: string;
+  readonly price: string;
+  readonly orderNow: string;
+  readonly nutrition: string;
+  readonly perServing: string;
+  readonly perHundredGrams: string;
+  readonly kcal: string;
+  readonly grams: (value: string) => string;
+  readonly macroNames: Readonly<Record<'protein' | 'carbohydrate' | 'fat', string>>;
   readonly loadingMenu: string;
   readonly emptyMenu: string;
   readonly menuNotFoundTitle: string;
@@ -108,6 +128,23 @@ const en: Messages = {
     molluscs: 'Molluscs',
   },
   dietaryLabelNames: { vegetarian: 'Vegetarian', vegan: 'Vegan', glutenFree: 'Gluten-free' },
+  arFailedBody: 'Your device could not start the camera view. The dish is still here in 3D.',
+  arStarting: 'Starting augmented reality',
+  arAllowCamera: 'Allow camera access when your browser asks, so the dish can be placed on your table.',
+  arOpening: (dish) => `Opening ${dish} in AR`,
+  arHandoffBody: 'Your phone takes over from here. Close it to come back to the menu.',
+  arPointAtTable: 'Point at your table',
+  arPointAtTableBody: 'Move your phone slowly until the surface is found, then tap to place the dish.',
+  autoRotate: 'Turn the dish',
+  recenter: 'Reset the view',
+  price: 'Price',
+  orderNow: 'Order now',
+  nutrition: 'Nutrition',
+  perServing: 'Per serving',
+  perHundredGrams: 'Per 100 g',
+  kcal: 'kcal',
+  grams: (value) => `${value} g`,
+  macroNames: { protein: 'Protein', carbohydrate: 'Carbs', fat: 'Fat' },
 };
 
 const tr: Messages = {
@@ -170,6 +207,24 @@ const tr: Messages = {
     molluscs: 'Yumuşakçalar',
   },
   dietaryLabelNames: { vegetarian: 'Vejetaryen', vegan: 'Vegan', glutenFree: 'Glutensiz' },
+  arFailedBody: 'Cihazınız kamera görünümünü başlatamadı. Yemek burada 3D olarak duruyor.',
+  arStarting: 'Artırılmış gerçeklik başlatılıyor',
+  arAllowCamera: 'Yemeğin masanıza yerleşebilmesi için tarayıcınız sorduğunda kamera izni verin.',
+  arOpening: (dish) => `${dish} AR ile açılıyor`,
+  arHandoffBody: 'Buradan sonrasını telefonunuz devralıyor. Kapattığınızda menüye dönersiniz.',
+  arPointAtTable: 'Telefonu masanıza doğrultun',
+  arPointAtTableBody:
+    'Yüzey bulunana kadar telefonu yavaşça hareket ettirin, sonra dokunup yemeği yerleştirin.',
+  autoRotate: 'Yemeği döndür',
+  recenter: 'Görünümü sıfırla',
+  price: 'Fiyat',
+  orderNow: 'Sipariş ver',
+  nutrition: 'Besin değerleri',
+  perServing: 'Porsiyon başına',
+  perHundredGrams: '100 g başına',
+  kcal: 'kcal',
+  grams: (value) => `${value} g`,
+  macroNames: { protein: 'Protein', carbohydrate: 'Karbonhidrat', fat: 'Yağ' },
 };
 
 const de: Messages = {
@@ -234,6 +289,26 @@ const de: Messages = {
     molluscs: 'Weichtiere',
   },
   dietaryLabelNames: { vegetarian: 'Vegetarisch', vegan: 'Vegan', glutenFree: 'Glutenfrei' },
+  arFailedBody: 'Ihr Gerät konnte die Kameraansicht nicht starten. Das Gericht bleibt hier in 3D.',
+  arStarting: 'Augmented Reality wird gestartet',
+  arAllowCamera:
+    'Erlauben Sie den Kamerazugriff, wenn Ihr Browser fragt, damit das Gericht auf Ihrem Tisch erscheint.',
+  arOpening: (dish) => `${dish} wird in AR geöffnet`,
+  arHandoffBody:
+    'Ihr Telefon übernimmt ab hier. Schließen Sie die Ansicht, um zur Speisekarte zurückzukehren.',
+  arPointAtTable: 'Richten Sie das Telefon auf Ihren Tisch',
+  arPointAtTableBody:
+    'Bewegen Sie das Telefon langsam, bis die Fläche erkannt ist, und tippen Sie dann, um das Gericht zu platzieren.',
+  autoRotate: 'Gericht drehen',
+  recenter: 'Ansicht zurücksetzen',
+  price: 'Preis',
+  orderNow: 'Jetzt bestellen',
+  nutrition: 'Nährwerte',
+  perServing: 'Pro Portion',
+  perHundredGrams: 'Pro 100 g',
+  kcal: 'kcal',
+  grams: (value) => `${value} g`,
+  macroNames: { protein: 'Eiweiß', carbohydrate: 'Kohlenhydrate', fat: 'Fett' },
 };
 
 const ru: Messages = {
@@ -296,6 +371,24 @@ const ru: Messages = {
     molluscs: 'Моллюски',
   },
   dietaryLabelNames: { vegetarian: 'Вегетарианское', vegan: 'Веганское', glutenFree: 'Без глютена' },
+  arFailedBody: 'Устройству не удалось запустить камеру. Блюдо остаётся здесь в 3D.',
+  arStarting: 'Запуск дополненной реальности',
+  arAllowCamera: 'Разрешите доступ к камере, когда браузер спросит, чтобы поставить блюдо на ваш стол.',
+  arOpening: (dish) => `Открываем «${dish}» в AR`,
+  arHandoffBody: 'Дальше работает ваш телефон. Закройте просмотр, чтобы вернуться в меню.',
+  arPointAtTable: 'Наведите телефон на стол',
+  arPointAtTableBody:
+    'Медленно перемещайте телефон, пока поверхность не будет найдена, затем коснитесь, чтобы поставить блюдо.',
+  autoRotate: 'Вращать блюдо',
+  recenter: 'Сбросить вид',
+  price: 'Цена',
+  orderNow: 'Заказать',
+  nutrition: 'Пищевая ценность',
+  perServing: 'На порцию',
+  perHundredGrams: 'На 100 г',
+  kcal: 'ккал',
+  grams: (value) => `${value} г`,
+  macroNames: { protein: 'Белки', carbohydrate: 'Углеводы', fat: 'Жиры' },
 };
 
 const ar: Messages = {
@@ -358,6 +451,23 @@ const ar: Messages = {
     molluscs: 'الرخويات',
   },
   dietaryLabelNames: { vegetarian: 'نباتي', vegan: 'نباتي صرف', glutenFree: 'خالٍ من الغلوتين' },
+  arFailedBody: 'تعذّر على جهازك بدء عرض الكاميرا. الطبق ما زال معروضًا هنا بتقنية ثلاثية الأبعاد.',
+  arStarting: 'جارٍ بدء الواقع المعزّز',
+  arAllowCamera: 'اسمح بالوصول إلى الكاميرا عندما يطلب المتصفّح ذلك، ليظهر الطبق على طاولتك.',
+  arOpening: (dish) => `جارٍ فتح ${dish} بالواقع المعزّز`,
+  arHandoffBody: 'سيتولّى هاتفك العرض من هنا. أغلقه للعودة إلى القائمة.',
+  arPointAtTable: 'وجّه الهاتف نحو طاولتك',
+  arPointAtTableBody: 'حرّك هاتفك ببطء حتى يتم العثور على السطح، ثم اضغط لوضع الطبق.',
+  autoRotate: 'تدوير الطبق',
+  recenter: 'إعادة ضبط العرض',
+  price: 'السعر',
+  orderNow: 'اطلب الآن',
+  nutrition: 'القيمة الغذائية',
+  perServing: 'لكل حصة',
+  perHundredGrams: 'لكل 100 غرام',
+  kcal: 'سعرة',
+  grams: (value) => `${value} غ`,
+  macroNames: { protein: 'بروتين', carbohydrate: 'كربوهيدرات', fat: 'دهون' },
 };
 
 const catalog: Readonly<Record<string, Messages>> = { en, tr, de, ru, ar };
