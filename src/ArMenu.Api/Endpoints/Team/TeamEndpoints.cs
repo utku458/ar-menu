@@ -6,6 +6,7 @@ using ArMenu.Api.RateLimiting;
 using ArMenu.Application.Abstractions.Authentication;
 using ArMenu.Application.Team;
 using ArMenu.Application.Team.AcceptInvitation;
+using ArMenu.Application.Team.AddMember;
 using ArMenu.Application.Team.ChangeMemberRole;
 using ArMenu.Application.Team.InviteMember;
 using ArMenu.Application.Team.Queries.GetInvitation;
@@ -13,6 +14,7 @@ using ArMenu.Application.Team.Queries.GetTeam;
 using ArMenu.Application.Team.RemoveMember;
 using ArMenu.Application.Team.ResendInvitation;
 using ArMenu.Application.Team.RevokeInvitation;
+using ArMenu.Application.Team.SetMemberPassword;
 using ArMenu.Application.Team.TransferOwnership;
 using ArMenu.Domain.Memberships;
 using ArMenu.Domain.Users;
@@ -56,6 +58,19 @@ internal sealed class TeamEndpoints : IEndpointModule
         team.MapDelete("/invitations/{invitationId:guid}", RevokeAsync)
             .WithSummary("Withdraws a pending invitation.")
             .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        team.MapPost("/members", AddMemberAsync)
+            .WithSummary("Opens an account that signs in with a user name and password, and adds it to the team. No e-mail is sent.")
+            .Produces<MemberAddedResponse>(StatusCodes.Status201Created)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
+        team.MapPut("/members/{membershipId:guid}/password", SetMemberPasswordAsync)
+            .WithSummary("Gives a user-name member a new password and ends their sessions. E-mail accounts reset their own.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status409Conflict);
 
@@ -124,6 +139,15 @@ internal sealed class TeamEndpoints : IEndpointModule
     private static async Task<IResult> RevokeAsync(Guid invitationId, IMediator mediator, CancellationToken cancellationToken) =>
         (await mediator.Send(new RevokeInvitationCommand(TenantInvitationId.From(invitationId)), cancellationToken)).ToNoContent();
 
+    private static async Task<IResult> AddMemberAsync(AddMemberRequest request, IMediator mediator, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new AddMemberCommand(request.FullName, request.UserName, request.Password, request.Role), cancellationToken);
+        return result.IsSuccess ? TypedResults.Created((string?)null, new MemberAddedResponse(result.Value.Value)) : result.Error.ToProblem();
+    }
+
+    private static async Task<IResult> SetMemberPasswordAsync(Guid membershipId, MemberPasswordRequest request, IMediator mediator, CancellationToken cancellationToken) =>
+        (await mediator.Send(new SetMemberPasswordCommand(TenantMembershipId.From(membershipId), request.Password), cancellationToken)).ToNoContent();
+
     private static async Task<IResult> ChangeRoleAsync(Guid membershipId, RoleRequest request, IMediator mediator, CancellationToken cancellationToken) =>
         (await mediator.Send(new ChangeMemberRoleCommand(TenantMembershipId.From(membershipId), request.Role), cancellationToken)).ToNoContent();
 
@@ -153,6 +177,18 @@ internal sealed class TeamEndpoints : IEndpointModule
     internal sealed record ResendRequest(string? Language);
 
     internal sealed record RoleRequest(TeamRole Role);
+
+    internal sealed record AddMemberRequest(string FullName, string UserName, string Password, TeamRole Role)
+    {
+        public override string ToString() => $"AddMemberRequest {{ UserName = {UserName}, Role = {Role}, *** }}";
+    }
+
+    internal sealed record MemberPasswordRequest(string Password)
+    {
+        public override string ToString() => "MemberPasswordRequest { *** }";
+    }
+
+    internal sealed record MemberAddedResponse(Guid MembershipId);
 
     internal sealed record PasswordConfirmationRequest(string Password)
     {

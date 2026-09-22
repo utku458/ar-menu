@@ -11,7 +11,12 @@ namespace ArMenu.IntegrationTests.Api;
 /// </summary>
 public sealed class OpenApiContractTests(PostgresDatabaseFixture database) : IAsyncLifetime
 {
-    private readonly ArMenuApiFactory _factory = new(database);
+    // The contract describes the API as deployed by default, and self-service sign-up is off by default; the other
+    // test hosts turn it on only because it is the shortest way to a business.
+    private readonly ArMenuApiFactory _factory = new(database, settings: new Dictionary<string, string?>
+    {
+        ["Onboarding:SignUpEnabled"] = "false",
+    });
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 

@@ -13,6 +13,12 @@ public sealed class User : AggregateRoot<UserId>, IAuditable
 
     public static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
 
+    /// <summary>
+    /// Where accounts without an e-mail address keep one. <c>.invalid</c> is reserved by RFC 2606 and never resolves,
+    /// so nothing addressed here can be delivered to anybody — the same device <see cref="Erase"/> uses.
+    /// </summary>
+    public const string NoMailboxDomain = "users.armenu.invalid";
+
     /// <summary>Not in any hash format, so no password verifies against it.</summary>
     private const string ErasedPasswordHash = "erased";
 
@@ -31,6 +37,21 @@ public sealed class User : AggregateRoot<UserId>, IAuditable
 #pragma warning restore CS8618
 
     public Email Email { get; private set; }
+
+    /// <summary>
+    /// The sign-in name of an account an administrator opened; <see langword="null"/> for accounts that sign in with
+    /// their e-mail address.
+    /// </summary>
+    public UserName? UserName { get; private set; }
+
+    /// <summary>
+    /// Runs the platform: may open businesses and act as the owner of any of them. Its sessions are not backed by a
+    /// membership, and nothing but the platform administrator's own account ever sets this.
+    /// </summary>
+    public bool IsPlatformAdmin { get; private set; }
+
+    /// <summary>Whether <see cref="Email"/> is a real mailbox rather than the placeholder of a user-name account.</summary>
+    public bool HasMailbox => !Email.Value.EndsWith("@" + NoMailboxDomain, StringComparison.Ordinal);
 
     public string FullName { get; private set; }
 
@@ -74,6 +95,51 @@ public sealed class User : AggregateRoot<UserId>, IAuditable
         return trimmedName.Length <= FullNameMaxLength
             ? new User(UserId.New(), email, trimmedName, passwordHash)
             : UserErrors.FullNameTooLong;
+    }
+
+    /// <summary>
+    /// An account opened by an administrator: it signs in with <paramref name="userName"/> and has no mailbox, so
+    /// nothing is ever sent to it and a forgotten password is reset by an administrator rather than by a link.
+    /// </summary>
+    public static Result<User> OpenWithUserName(UserName userName, string fullName, string passwordHash)
+    {
+        ArgumentNullException.ThrowIfNull(userName);
+
+        var placeholder = Email.Create(FormattableString.Invariant($"{userName.Value}@{NoMailboxDomain}"));
+        var user = Register(placeholder.Value, fullName, passwordHash);
+        if (user.IsSuccess)
+        {
+            user.Value.UserName = userName;
+        }
+
+        return user;
+    }
+
+    /// <summary>The platform administrator: a user-name account that runs the platform (see <see cref="IsPlatformAdmin"/>).</summary>
+    public static Result<User> OpenPlatformAdmin(UserName userName, string fullName, string passwordHash)
+    {
+        var user = OpenWithUserName(userName, fullName, passwordHash);
+        if (user.IsSuccess)
+        {
+            user.Value.IsPlatformAdmin = true;
+        }
+
+        return user;
+    }
+
+    /// <summary>
+    /// Sets a password without the proof of a mailbox that <see cref="ResetPassword"/> relies on: an administrator
+    /// resetting it for someone, or the person changing it while signed in. Lockout ends and every earlier session
+    /// stops being refreshable, so a password that leaked is really gone.
+    /// </summary>
+    public void SetPassword(string passwordHash, DateTimeOffset now)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
+
+        PasswordHash = passwordHash;
+        PasswordChangedAt = now;
+        FailedSignInAttempts = 0;
+        LockedOutUntil = null;
     }
 
     public bool IsLockedOut(DateTimeOffset now) => LockedOutUntil > now;
@@ -139,6 +205,8 @@ public sealed class User : AggregateRoot<UserId>, IAuditable
         }
 
         Email = Email.Create(FormattableString.Invariant($"erased-{Id.Value:N}@erased.invalid")).Value;
+        // Freed like the address: the name no longer identifies anyone and can be given to someone new.
+        UserName = null;
         FullName = string.Empty;
         PasswordHash = ErasedPasswordHash;
         EmailVerifiedAt = null;

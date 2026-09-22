@@ -4,6 +4,7 @@ using ArMenu.Api.Http;
 using ArMenu.Api.MultiTenancy;
 using ArMenu.Api.RateLimiting;
 using ArMenu.Application.Abstractions.Authentication;
+using ArMenu.Application.Accounts.ChangePassword;
 using ArMenu.Application.Accounts.DeleteAccount;
 using ArMenu.Application.Accounts.Queries.GetAccountDeletion;
 using ArMenu.Application.Authentication.Queries.GetMyWorkspaces;
@@ -65,6 +66,16 @@ internal sealed class AccountEndpoints : IEndpointModule
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
+        endpoints.MapPut("/api/v1/me/password", ChangePasswordAsync)
+            .RequireAuthorization()
+            .WithRateLimit(RateLimitingPolicies.Authentication)
+            .WithTags("Account")
+            .WithSummary("Replaces the signed-in person's password, confirmed with the current one. Every session ends, this one included.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status409Conflict);
+
         endpoints.MapGet("/api/v1/me/deletion", GetDeletionAsync)
             .RequireAuthorization()
             .WithTags("Account")
@@ -112,6 +123,9 @@ internal sealed class AccountEndpoints : IEndpointModule
         return result.IsSuccess ? TypedResults.Accepted((string?)null) : result.Error.ToProblem();
     }
 
+    private static async Task<IResult> ChangePasswordAsync(ChangePasswordRequest request, ClaimsPrincipal user, IMediator mediator, CancellationToken cancellationToken) =>
+        (await mediator.Send(new ChangePasswordCommand(UserIdOf(user), request.CurrentPassword, request.NewPassword), cancellationToken)).ToNoContent();
+
     private static async Task<IResult> GetDeletionAsync(ClaimsPrincipal user, IMediator mediator, CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetAccountDeletionQuery(UserIdOf(user)), cancellationToken);
@@ -148,6 +162,11 @@ internal sealed class AccountEndpoints : IEndpointModule
     }
 
     internal sealed record ResendVerificationRequest(string? Language);
+
+    internal sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword)
+    {
+        public override string ToString() => "ChangePasswordRequest { *** }";
+    }
 
     internal sealed record DeleteAccountRequest(string Password, string? Language)
     {

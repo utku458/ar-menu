@@ -653,6 +653,10 @@ namespace ArMenu.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("full_name");
 
+                    b.Property<bool>("IsPlatformAdmin")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_platform_admin");
+
                     b.Property<DateTimeOffset?>("LastSignedInAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_signed_in_at");
@@ -681,12 +685,22 @@ namespace ArMenu.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
+                    b.Property<string>("UserName")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasColumnName("user_name");
+
                     b.HasKey("Id")
                         .HasName("pk_users");
 
                     b.HasIndex("Email")
                         .IsUnique()
                         .HasDatabaseName("ix_users_email");
+
+                    b.HasIndex("UserName")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_user_name")
+                        .HasFilter("user_name IS NOT NULL");
 
                     b.ToTable("users", (string)null);
                 });

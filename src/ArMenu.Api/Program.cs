@@ -7,6 +7,7 @@ using ArMenu.Application;
 using ArMenu.Infrastructure;
 using ArMenu.Infrastructure.Assets;
 using ArMenu.Infrastructure.Persistence;
+using ArMenu.Infrastructure.Platform;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Scalar.AspNetCore;
 
@@ -48,5 +49,9 @@ if (app.Environment.IsDevelopment())
     await app.Services.InitializeDevelopmentDatabaseAsync();
     await app.Services.InitializeDevelopmentStorageAsync();
 }
+
+// Every environment: without its administrator the platform has no way in (sign-up is not public). After the
+// development database is migrated, so it never runs against a schema that lacks the columns it writes.
+await app.Services.EnsurePlatformAdministratorAsync();
 
 await app.RunAsync();

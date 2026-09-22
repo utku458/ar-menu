@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddScoped<InvitationMailer>();
         services.AddScoped<UserLinks>();
         services.AddScoped<Accounts.PasswordConfirmation>();
+        services.AddScoped<Platform.PlatformAdministrator>();
         services.AddSingleton<DashboardLinks>();
 
         services.AddOptions<UserSessionOptions>()

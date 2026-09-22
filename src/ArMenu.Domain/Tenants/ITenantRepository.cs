@@ -6,5 +6,7 @@ public interface ITenantRepository
 
     Task<bool> SlugExistsAsync(TenantSlug slug, CancellationToken cancellationToken = default);
 
+    Task<Tenant?> FindBySlugAsync(TenantSlug slug, CancellationToken cancellationToken = default);
+
     void Add(Tenant tenant);
 }

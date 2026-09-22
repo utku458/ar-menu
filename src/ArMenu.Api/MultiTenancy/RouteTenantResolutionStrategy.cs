@@ -7,9 +7,15 @@ namespace ArMenu.Api.MultiTenancy;
 /// Resolves the tenant from a route value holding its slug, e.g. <c>/api/v1/menus/{tenant}</c>.
 /// Meant for anonymous, customer-facing endpoints reached by scanning a QR code.
 /// </summary>
-internal sealed class RouteTenantResolutionStrategy(string routeParameterName) : ITenantResolutionStrategy
+internal sealed class RouteTenantResolutionStrategy(string routeParameterName, bool businessesOnly = false) : ITenantResolutionStrategy
 {
     public string RouteParameterName { get; } = routeParameterName;
+
+    /// <summary>
+    /// Whether the platform workspace is treated as unknown. Guest-facing routes set it: the workspace is where the
+    /// administrator signs in, not a business, and it has no menu to show or visits to count.
+    /// </summary>
+    public bool BusinessesOnly { get; } = businessesOnly;
 
     public ValueTask<TenantInfo?> ResolveAsync(HttpContext httpContext, ITenantLookup tenantLookup)
     {
@@ -19,7 +25,8 @@ internal sealed class RouteTenantResolutionStrategy(string routeParameterName) :
         // A malformed slug cannot belong to any tenant. Answering without touching the cache or the database keeps
         // random probing from filling the cache with junk keys.
         if (httpContext.GetRouteValue(RouteParameterName) is not string value ||
-            TenantSlug.Create(value) is not { IsSuccess: true } slug)
+            TenantSlug.Create(value) is not { IsSuccess: true } slug ||
+            (BusinessesOnly && slug.Value.IsPlatform))
         {
             return ValueTask.FromResult<TenantInfo?>(null);
         }

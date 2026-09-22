@@ -9,6 +9,20 @@ internal static class TenantResolutionExtensions
     public static TBuilder RequireTenantFromRoute<TBuilder>(
         this TBuilder builder,
         string routeParameterName = DefaultRouteParameterName)
+        where TBuilder : IEndpointConventionBuilder =>
+        builder.RequireRouteTenant(routeParameterName, businessesOnly: false);
+
+    /// <summary>
+    /// Like <see cref="RequireTenantFromRoute{TBuilder}"/>, for guest-facing routes: the platform workspace answers
+    /// exactly as an unknown slug does, since it is no business and must not look like one.
+    /// </summary>
+    public static TBuilder RequireBusinessFromRoute<TBuilder>(
+        this TBuilder builder,
+        string routeParameterName = DefaultRouteParameterName)
+        where TBuilder : IEndpointConventionBuilder =>
+        builder.RequireRouteTenant(routeParameterName, businessesOnly: true);
+
+    private static TBuilder RequireRouteTenant<TBuilder>(this TBuilder builder, string routeParameterName, bool businessesOnly)
         where TBuilder : IEndpointConventionBuilder
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(routeParameterName);
@@ -24,7 +38,7 @@ internal static class TenantResolutionExtensions
                     "but its route template does not define it.");
             }
 
-            endpointBuilder.Metadata.Add(new RouteTenantResolutionStrategy(routeParameterName));
+            endpointBuilder.Metadata.Add(new RouteTenantResolutionStrategy(routeParameterName, businessesOnly));
         });
 
         return builder;

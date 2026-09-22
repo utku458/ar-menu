@@ -17,7 +17,7 @@ internal sealed class StatisticsEndpoints : IEndpointModule
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapPost("/api/v1/menus/{tenant}/events", RecordAsync)
-            .RequireTenantFromRoute()
+            .RequireBusinessFromRoute()
             .AllowAnonymous()
             .WithRateLimit(RateLimitingPolicies.PublicMenu)
             .WithTags("Public menu")

@@ -1,73 +1,6 @@
 // Generated from contracts/openapi/v1.json by `pnpm generate:api`. Do not edit.
 
 export interface paths {
-    "/api/v1/tenants": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Creates a business with its owner account and signs the owner in. */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["SignUpRequest"];
-                };
-            };
-            responses: {
-                /** @description Created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["SignUpResponse"];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
-                    };
-                };
-                /** @description Conflict */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/problem+json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-                /** @description Too Many Requests */
-                429: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/problem+json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/menus/{tenant}": {
         parameters: {
             query?: never;
@@ -437,6 +370,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Replaces the signed-in person's password, confirmed with the current one. Every session ends, this one included. */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ChangePasswordRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Too Many Requests */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/deletion": {
         parameters: {
             query?: never;
@@ -516,6 +523,73 @@ export interface paths {
                 };
                 /** @description Conflict */
                 409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Too Many Requests */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/sign-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Signs a user-name account in to its own business, or the administrator to the platform; says which. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UserNameSignInRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WorkspaceAccessTokenResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -860,6 +934,167 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/manage/team/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Opens an account that signs in with a user name and password, and adds it to the team. No e-mail is sent. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddMemberRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MemberAddedResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/manage/team/members/{membershipId}/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Gives a user-name member a new password and ends their sessions. E-mail accounts reset their own. */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    membershipId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MemberPasswordRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1472,6 +1707,185 @@ export interface paths {
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/businesses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every business on the platform, by name. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BusinessSummary"][];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Opens a business with its owner's account, who signs in with the given user name and password. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["OpenBusinessRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OpenedBusinessResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/businesses/{businessId}/enter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** An access token for the business with the owner's role. Short-lived and not refreshable: enter again when it expires. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    businessId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EnteredBusinessResponse"];
+                    };
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Forbidden */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -3076,6 +3490,12 @@ export interface components {
             workspacesToHandOver: components["schemas"]["AffectedWorkspace"][];
             workspacesToLeave: components["schemas"]["AffectedWorkspace"][];
         };
+        AddMemberRequest: {
+            fullName: string;
+            userName: string;
+            password: string;
+            role: components["schemas"]["TeamRole"];
+        };
         AffectedWorkspace: {
             slug: string;
             name: string;
@@ -3157,6 +3577,15 @@ export interface components {
             logoPath: null | string;
             accentColor: null | string;
         };
+        BusinessSummary: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+            status: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
         CategoryRequest: {
             name: {
                 [key: string]: string;
@@ -3166,6 +3595,10 @@ export interface components {
             };
             /** @default true */
             isVisible: boolean;
+        };
+        ChangePasswordRequest: {
+            currentPassword: string;
+            newPassword: string;
         };
         CreatedResponse: {
             /** Format: uuid */
@@ -3205,6 +3638,10 @@ export interface components {
             logoUrl: null | string;
             accentColor: null | string;
         };
+        /**
+         * @description The signed-in person. `UserName` is how a user-name account signs in, and null for e-mail accounts, whose
+         *     `Email` is then a real address; `IsPlatformAdmin` says whether the platform pages are open to them.
+         */
         CurrentUserResponse: {
             /** Format: uuid */
             id: string;
@@ -3212,6 +3649,8 @@ export interface components {
             emailVerified: boolean;
             fullName: string;
             role: string;
+            userName: null | string;
+            isPlatformAdmin: boolean;
             tenant: components["schemas"]["CurrentTenantResponse"];
         };
         DailyMenuStatistics: {
@@ -3242,6 +3681,19 @@ export interface components {
         };
         EmailVerificationRequest: {
             token: string;
+        };
+        /**
+         * @description A bearer token for a business the administrator entered, and the business's slug. There is no refresh token:
+         *     when it expires, the dashboard asks to enter again.
+         */
+        EnteredBusinessResponse: {
+            accessToken: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: int32 */
+            expiresIn: number;
+            workspace: string;
+            tokenType?: null | string;
         };
         /**
          * @description A recorded field. Menu items: `name`, `description` (translations), `price` (amount),
@@ -3395,6 +3847,13 @@ export interface components {
         ManagedMenuResponse: {
             categories: components["schemas"]["ManagedMenuCategoryResponse"][];
         };
+        MemberAddedResponse: {
+            /** Format: uuid */
+            membershipId: string;
+        };
+        MemberPasswordRequest: {
+            password: string;
+        };
         MenuEventInput: {
             type: components["schemas"]["MenuEventType"];
             /** Format: uuid */
@@ -3492,6 +3951,21 @@ export interface components {
         NewPasswordRequest: {
             token: string;
             password: string;
+        };
+        OpenBusinessRequest: {
+            businessName: string;
+            slug: string;
+            defaultCulture: string;
+            currency: string;
+            ownerFullName: string;
+            ownerUserName: string;
+            ownerPassword: string;
+            timeZone: null | string;
+        };
+        OpenedBusinessResponse: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
         };
         PasswordConfirmationRequest: {
             password: string;
@@ -3596,26 +4070,10 @@ export interface components {
             email: string;
             password: string;
         };
-        SignUpRequest: {
-            businessName: string;
-            slug: string;
-            defaultCulture: string;
-            currency: string;
-            ownerFullName: string;
-            ownerEmail: string;
-            password: string;
-            timeZone?: null | string;
-        };
-        SignUpResponse: {
-            /** Format: uuid */
-            tenantId: string;
-            slug: string;
-            accessToken: string;
-            /** Format: date-time */
-            accessTokenExpiresAt: string;
-            /** Format: int32 */
-            accessTokenExpiresIn: number;
-        };
+        /**
+         * @description A team member. `UserName` is set for accounts that sign in with one, whose `Email` is then only a
+         *     placeholder no mail reaches; those are also the accounts whose password the owner can reset.
+         */
         TeamMemberResponse: {
             /** Format: uuid */
             id: string;
@@ -3628,6 +4086,7 @@ export interface components {
             joinedAt: string;
             /** Format: date-time */
             lastSignedInAt: null | string;
+            userName?: null | string;
         };
         TeamResponse: {
             members: components["schemas"]["TeamMemberResponse"][];
@@ -3663,6 +4122,24 @@ export interface components {
             /** Format: int64 */
             size: number;
         };
+        UserNameSignInRequest: {
+            userName: string;
+            password: string;
+        };
+        /**
+         * @description A token response that also says where the session lives: `Workspace` is the slug whose auth endpoints
+         *     refresh and end it, and `IsPlatformAdmin` is true for the administrator, whose workspace is the platform.
+         */
+        WorkspaceAccessTokenResponse: {
+            accessToken: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: int32 */
+            expiresIn: number;
+            workspace: string;
+            isPlatformAdmin: boolean;
+            tokenType?: null | string;
+        };
         WorkspaceResponse: {
             slug: string;
             name: string;
@@ -3678,6 +4155,7 @@ export interface components {
 export type AcceptInvitationRequest = components['schemas']['AcceptInvitationRequest'];
 export type AccessTokenResponse = components['schemas']['AccessTokenResponse'];
 export type AccountDeletionResponse = components['schemas']['AccountDeletionResponse'];
+export type AddMemberRequest = components['schemas']['AddMemberRequest'];
 export type AffectedWorkspace = components['schemas']['AffectedWorkspace'];
 export type ArModelProcessingRequest = components['schemas']['ArModelProcessingRequest'];
 export type ArModelProcessingResponse = components['schemas']['ArModelProcessingResponse'];
@@ -3689,7 +4167,9 @@ export type AssetKind = components['schemas']['AssetKind'];
 export type AssetUpload = components['schemas']['AssetUpload'];
 export type AvailabilityRequest = components['schemas']['AvailabilityRequest'];
 export type BrandingRequest = components['schemas']['BrandingRequest'];
+export type BusinessSummary = components['schemas']['BusinessSummary'];
 export type CategoryRequest = components['schemas']['CategoryRequest'];
+export type ChangePasswordRequest = components['schemas']['ChangePasswordRequest'];
 export type CreatedResponse = components['schemas']['CreatedResponse'];
 export type CreateItemRequest = components['schemas']['CreateItemRequest'];
 export type CurrentTenantResponse = components['schemas']['CurrentTenantResponse'];
@@ -3698,6 +4178,7 @@ export type DailyMenuStatistics = components['schemas']['DailyMenuStatistics'];
 export type DeleteAccountRequest = components['schemas']['DeleteAccountRequest'];
 export type DishStatistics = components['schemas']['DishStatistics'];
 export type EmailVerificationRequest = components['schemas']['EmailVerificationRequest'];
+export type EnteredBusinessResponse = components['schemas']['EnteredBusinessResponse'];
 export type HistoryChange = components['schemas']['HistoryChange'];
 export type HistoryEntryResponse = components['schemas']['HistoryEntryResponse'];
 export type HistoryPage = components['schemas']['HistoryPage'];
@@ -3714,6 +4195,8 @@ export type ManagedArModelResponse = components['schemas']['ManagedArModelRespon
 export type ManagedMenuCategoryResponse = components['schemas']['ManagedMenuCategoryResponse'];
 export type ManagedMenuItemResponse = components['schemas']['ManagedMenuItemResponse'];
 export type ManagedMenuResponse = components['schemas']['ManagedMenuResponse'];
+export type MemberAddedResponse = components['schemas']['MemberAddedResponse'];
+export type MemberPasswordRequest = components['schemas']['MemberPasswordRequest'];
 export type MenuEventInput = components['schemas']['MenuEventInput'];
 export type MenuEventsRequest = components['schemas']['MenuEventsRequest'];
 export type MenuEventType = components['schemas']['MenuEventType'];
@@ -3726,6 +4209,8 @@ export type ModelDimensionsResponse = components['schemas']['ModelDimensionsResp
 export type ModelFileSizesResponse = components['schemas']['ModelFileSizesResponse'];
 export type ModelStatisticsResponse = components['schemas']['ModelStatisticsResponse'];
 export type NewPasswordRequest = components['schemas']['NewPasswordRequest'];
+export type OpenBusinessRequest = components['schemas']['OpenBusinessRequest'];
+export type OpenedBusinessResponse = components['schemas']['OpenedBusinessResponse'];
 export type PasswordConfirmationRequest = components['schemas']['PasswordConfirmationRequest'];
 export type PasswordResetRequest = components['schemas']['PasswordResetRequest'];
 export type PendingInvitationResponse = components['schemas']['PendingInvitationResponse'];
@@ -3741,14 +4226,14 @@ export type ResendRequest = components['schemas']['ResendRequest'];
 export type ResendVerificationRequest = components['schemas']['ResendVerificationRequest'];
 export type RoleRequest = components['schemas']['RoleRequest'];
 export type SignInRequest = components['schemas']['SignInRequest'];
-export type SignUpRequest = components['schemas']['SignUpRequest'];
-export type SignUpResponse = components['schemas']['SignUpResponse'];
 export type TeamMemberResponse = components['schemas']['TeamMemberResponse'];
 export type TeamResponse = components['schemas']['TeamResponse'];
 export type TeamRole = components['schemas']['TeamRole'];
 export type TimeZoneRequest = components['schemas']['TimeZoneRequest'];
 export type UpdateItemRequest = components['schemas']['UpdateItemRequest'];
 export type UploadRequest = components['schemas']['UploadRequest'];
+export type UserNameSignInRequest = components['schemas']['UserNameSignInRequest'];
+export type WorkspaceAccessTokenResponse = components['schemas']['WorkspaceAccessTokenResponse'];
 export type WorkspaceResponse = components['schemas']['WorkspaceResponse'];
 export type $defs = Record<string, never>;
 export interface operations {

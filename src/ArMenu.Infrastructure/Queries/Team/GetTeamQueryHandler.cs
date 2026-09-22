@@ -25,6 +25,7 @@ public sealed class GetTeamQueryHandler(ArMenuDbContext dbContext, TimeProvider 
                 row.membership.Id,
                 row.user.FullName,
                 row.user.Email,
+                row.user.UserName,
                 row.membership.Role,
                 row.membership.CreatedAt,
                 row.user.LastSignedInAt,
@@ -48,7 +49,8 @@ public sealed class GetTeamQueryHandler(ArMenuDbContext dbContext, TimeProvider 
                 member.Email.Value,
                 member.Role.ToTeamRole(),
                 member.CreatedAt,
-                member.LastSignedInAt))],
+                member.LastSignedInAt,
+                member.UserName?.Value))],
             [.. invitations.Select(row => new PendingInvitationResponse(
                 row.invitation.Id.Value,
                 row.invitation.Email.Value,

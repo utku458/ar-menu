@@ -40,6 +40,9 @@ internal sealed class BrandColorConverter()
 internal sealed class EmailConverter()
     : ValueConverter<Email, string>(email => email.Value, value => Email.Create(value).Value);
 
+internal sealed class UserNameConverter()
+    : ValueConverter<UserName, string>(userName => userName.Value, value => UserName.Create(value).Value);
+
 internal sealed class RefreshTokenHashConverter()
     : ValueConverter<RefreshTokenHash, string>(hash => hash.Value, value => RefreshTokenHash.Create(value).Value);
 

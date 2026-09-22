@@ -14,7 +14,7 @@ internal sealed class PublicMenuEndpoints : IEndpointModule
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints) =>
         endpoints.MapGet("/api/v1/menus/{tenant}", GetMenuAsync)
-            .RequireTenantFromRoute()
+            .RequireBusinessFromRoute()
             .AllowAnonymous()
             .WithRateLimit(RateLimitingPolicies.PublicMenu)
             .WithTags("Public menu")

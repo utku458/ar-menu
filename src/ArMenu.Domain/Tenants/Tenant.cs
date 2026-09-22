@@ -95,6 +95,25 @@ public sealed class Tenant : AggregateRoot<TenantId>, IAuditable
         return tenant;
     }
 
+    /// <summary>
+    /// The one workspace that is not a business: where the platform administrator's sessions live when they are not
+    /// working inside a business. Every session and refresh cookie belongs to a tenant, and row-level security holds
+    /// sessions to it, so the administrator needs a home tenant too — this is it.
+    /// </summary>
+    /// <remarks>
+    /// It takes the reserved <see cref="TenantSlug.Platform"/>, which <see cref="Create"/> refuses to anyone else, so
+    /// no business can collide with it. It has no menu and is never listed or served as one.
+    /// </remarks>
+    public static Tenant CreatePlatform(CultureCode defaultCulture, Currency currency)
+    {
+        ArgumentNullException.ThrowIfNull(defaultCulture);
+        ArgumentNullException.ThrowIfNull(currency);
+
+        return new Tenant(TenantId.New(), "ArMenu", TenantSlug.Platform, defaultCulture, currency, TenantTimeZone.Utc);
+    }
+
+    public bool IsPlatform => Slug.IsPlatform;
+
     public Result Rename(string name)
     {
         var validatedName = ValidateName(name);

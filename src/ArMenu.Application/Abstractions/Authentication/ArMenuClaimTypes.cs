@@ -12,4 +12,13 @@ public static class ArMenuClaimTypes
 
     /// <summary>Identifier of the tenant the token was issued for. Tokens are always scoped to a single tenant.</summary>
     public const string TenantId = "tenant_id";
+
+    /// <summary>The sign-in name of a user-name account (the OpenID Connect claim for it). Absent for e-mail accounts.</summary>
+    public const string UserName = "preferred_username";
+
+    /// <summary>
+    /// Present, and <c>true</c>, only on the platform administrator's tokens. It unlocks the platform endpoints; it
+    /// does not widen access inside a business, where the administrator holds the owner's role like anyone else.
+    /// </summary>
+    public const string PlatformAdmin = "platform_admin";
 }

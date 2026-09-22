@@ -5,66 +5,6 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/v1/tenants": {
-      "post": {
-        "tags": [
-          "Onboarding"
-        ],
-        "summary": "Creates a business with its owner account and signs the owner in.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SignUpRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "429": {
-            "description": "Too Many Requests",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SignUpResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProblemDetails"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/menus/{tenant}": {
       "get": {
         "tags": [
@@ -427,6 +367,74 @@
         ]
       }
     },
+    "/api/v1/me/password": {
+      "put": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Replaces the signed-in person's password, confirmed with the current one. Every session ends, this one included.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
     "/api/v1/me/deletion": {
       "get": {
         "tags": [
@@ -526,6 +534,66 @@
             "Bearer": [ ]
           }
         ]
+      }
+    },
+    "/api/v1/auth/sign-in": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Signs a user-name account in to its own business, or the administrator to the platform; says which.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserNameSignInRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceAccessTokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/me": {
@@ -809,6 +877,170 @@
           },
           "204": {
             "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/manage/team/members": {
+      "post": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Opens an account that signs in with a user name and password, and adds it to the team. No e-mail is sent.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMemberRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberAddedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/manage/team/members/{membershipId}/password": {
+      "put": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Gives a user-name member a new password and ends their sessions. E-mail accounts reset their own.",
+        "parameters": [
+          {
+            "name": "membershipId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
           },
           "404": {
             "description": "Not Found",
@@ -1433,6 +1665,193 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/platform/businesses": {
+      "get": {
+        "tags": [
+          "Platform"
+        ],
+        "summary": "Every business on the platform, by name.",
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BusinessSummary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Platform"
+        ],
+        "summary": "Opens a business with its owner's account, who signs in with the given user name and password.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenBusinessRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenedBusinessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/platform/businesses/{businessId}/enter": {
+      "post": {
+        "tags": [
+          "Platform"
+        ],
+        "summary": "An access token for the business with the owner's role. Short-lived and not refreshable: enter again when it expires.",
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnteredBusinessResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -3174,6 +3593,29 @@
           }
         }
       },
+      "AddMemberRequest": {
+        "required": [
+          "fullName",
+          "userName",
+          "password",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/TeamRole"
+          }
+        }
+      },
       "AffectedWorkspace": {
         "required": [
           "slug",
@@ -3445,6 +3887,35 @@
         },
         "description": "`LogoPath` is the `path` of a published logo upload, or `null` to show no logo; `AccentColor`\nis written `#rrggbb`, or `null` for the platform's own neutral style."
       },
+      "BusinessSummary": {
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "status",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "CategoryRequest": {
         "required": [
           "name",
@@ -3470,6 +3941,21 @@
           "isVisible": {
             "type": "boolean",
             "default": true
+          }
+        }
+      },
+      "ChangePasswordRequest": {
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ],
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string"
           }
         }
       },
@@ -3606,6 +4092,8 @@
           "emailVerified",
           "fullName",
           "role",
+          "userName",
+          "isPlatformAdmin",
           "tenant"
         ],
         "type": "object",
@@ -3626,10 +4114,20 @@
           "role": {
             "type": "string"
           },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "isPlatformAdmin": {
+            "type": "boolean"
+          },
           "tenant": {
             "$ref": "#/components/schemas/CurrentTenantResponse"
           }
-        }
+        },
+        "description": "The signed-in person. `UserName` is how a user-name account signs in, and null for e-mail accounts, whose\n`Email` is then a real address; `IsPlatformAdmin` says whether the platform pages are open to them."
       },
       "DailyMenuStatistics": {
         "required": [
@@ -3718,6 +4216,38 @@
             "type": "string"
           }
         }
+      },
+      "EnteredBusinessResponse": {
+        "required": [
+          "accessToken",
+          "expiresAt",
+          "expiresIn",
+          "workspace"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workspace": {
+            "type": "string"
+          },
+          "tokenType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "A bearer token for a business the administrator entered, and the business's slug. There is no refresh token:\nwhen it expires, the dashboard asks to enter again."
       },
       "HistoryChange": {
         "required": [
@@ -4233,6 +4763,29 @@
           }
         }
       },
+      "MemberAddedResponse": {
+        "required": [
+          "membershipId"
+        ],
+        "type": "object",
+        "properties": {
+          "membershipId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "MemberPasswordRequest": {
+        "required": [
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        }
+      },
       "MenuEventInput": {
         "required": [
           "type",
@@ -4536,6 +5089,64 @@
             "type": "string"
           },
           "password": {
+            "type": "string"
+          }
+        }
+      },
+      "OpenBusinessRequest": {
+        "required": [
+          "businessName",
+          "slug",
+          "defaultCulture",
+          "currency",
+          "ownerFullName",
+          "ownerUserName",
+          "ownerPassword",
+          "timeZone"
+        ],
+        "type": "object",
+        "properties": {
+          "businessName": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "defaultCulture": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "ownerFullName": {
+            "type": "string"
+          },
+          "ownerUserName": {
+            "type": "string"
+          },
+          "ownerPassword": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "OpenedBusinessResponse": {
+        "required": [
+          "id",
+          "slug"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "slug": {
             "type": "string"
           }
         }
@@ -4923,77 +5534,6 @@
           }
         }
       },
-      "SignUpRequest": {
-        "required": [
-          "businessName",
-          "slug",
-          "defaultCulture",
-          "currency",
-          "ownerFullName",
-          "ownerEmail",
-          "password"
-        ],
-        "type": "object",
-        "properties": {
-          "businessName": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "defaultCulture": {
-            "type": "string"
-          },
-          "currency": {
-            "type": "string"
-          },
-          "ownerFullName": {
-            "type": "string"
-          },
-          "ownerEmail": {
-            "type": "string"
-          },
-          "password": {
-            "type": "string"
-          },
-          "timeZone": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
-      },
-      "SignUpResponse": {
-        "required": [
-          "tenantId",
-          "slug",
-          "accessToken",
-          "accessTokenExpiresAt",
-          "accessTokenExpiresIn"
-        ],
-        "type": "object",
-        "properties": {
-          "tenantId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "accessToken": {
-            "type": "string"
-          },
-          "accessTokenExpiresAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "accessTokenExpiresIn": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
       "TeamMemberResponse": {
         "required": [
           "id",
@@ -5033,8 +5573,15 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
-        }
+        },
+        "description": "A team member. `UserName` is set for accounts that sign in with one, whose `Email` is then only a\nplaceholder no mail reaches; those are also the accounts whose password the owner can reset."
       },
       "TeamResponse": {
         "required": [
@@ -5153,6 +5700,57 @@
           }
         }
       },
+      "UserNameSignInRequest": {
+        "required": [
+          "userName",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "userName": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "WorkspaceAccessTokenResponse": {
+        "required": [
+          "accessToken",
+          "expiresAt",
+          "expiresIn",
+          "workspace",
+          "isPlatformAdmin"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workspace": {
+            "type": "string"
+          },
+          "isPlatformAdmin": {
+            "type": "boolean"
+          },
+          "tokenType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "description": "A token response that also says where the session lives: `Workspace` is the slug whose auth endpoints\nrefresh and end it, and `IsPlatformAdmin` is true for the administrator, whose workspace is the platform."
+      },
       "WorkspaceResponse": {
         "required": [
           "slug",
@@ -5184,9 +5782,6 @@
   },
   "tags": [
     {
-      "name": "Onboarding"
-    },
-    {
       "name": "Public menu"
     },
     {
@@ -5206,6 +5801,9 @@
     },
     {
       "name": "Settings"
+    },
+    {
+      "name": "Platform"
     },
     {
       "name": "Menu management"

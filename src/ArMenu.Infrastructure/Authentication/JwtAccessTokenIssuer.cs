@@ -41,6 +41,17 @@ internal sealed class JwtAccessTokenIssuer(IOptions<JwtOptions> options, TimePro
             },
         };
 
+        // Only written when they apply, so an ordinary member's token carries neither and cannot be mistaken for more.
+        if (subject.UserName is not null)
+        {
+            descriptor.Claims[ArMenuClaimTypes.UserName] = subject.UserName;
+        }
+
+        if (subject.IsPlatformAdmin)
+        {
+            descriptor.Claims[ArMenuClaimTypes.PlatformAdmin] = true;
+        }
+
         return new AccessToken(TokenHandler.CreateToken(descriptor), expiresAt);
     }
 }

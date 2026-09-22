@@ -6,9 +6,28 @@ using Mediator;
 
 namespace ArMenu.Api.Endpoints.Tenants;
 
+/// <summary>
+/// Self-service sign-up, closed unless a deployment opts in with <c>Onboarding:SignUpEnabled</c>. Businesses are opened
+/// by the platform administrator instead (see <c>PlatformEndpoints</c>); a platform that also wants strangers to open
+/// businesses on it turns this back on.
+/// </summary>
+/// <remarks>
+/// Closed means not mapped at all, rather than mapped and refusing: the route does not exist, is not in the API
+/// description, and nothing about it can be probed.
+/// </remarks>
 internal sealed class SignUpEndpoints : IEndpointModule
 {
-    public void MapEndpoints(IEndpointRouteBuilder endpoints) =>
+    public const string EnabledSetting = "Onboarding:SignUpEnabled";
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+
+        if (!endpoints.ServiceProvider.GetRequiredService<IConfiguration>().GetValue<bool>(EnabledSetting))
+        {
+            return;
+        }
+
         endpoints.MapPost("/api/v1/tenants", SignUpAsync)
             .AllowAnonymous()
             .WithRateLimit(RateLimitingPolicies.SignUp)
@@ -17,6 +36,7 @@ internal sealed class SignUpEndpoints : IEndpointModule
             .Produces<SignUpResponse>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status409Conflict);
+    }
 
     private static async Task<IResult> SignUpAsync(SignUpRequest request, IMediator mediator, HttpContext httpContext, CancellationToken cancellationToken)
     {

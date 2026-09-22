@@ -31,12 +31,15 @@ public sealed class GetMyWorkspacesQueryHandler(ArMenuDbContext dbContext)
                 [userId],
                 token);
 
+            var platform = TenantSlug.Platform;
+
             var rows = await dbContext.TenantMemberships
                 .IgnoreQueryFilters([QueryFilters.Tenant])
                 .AsNoTracking()
                 .Where(membership => membership.UserId == query.UserId)
                 .Join(
-                    dbContext.Tenants.Where(tenant => tenant.Status == TenantStatus.Active),
+                    // The platform workspace is where the administrator's own session lives, not a business to switch to.
+                    dbContext.Tenants.Where(tenant => tenant.Status == TenantStatus.Active && tenant.Slug != platform),
                     membership => membership.TenantId,
                     tenant => tenant.Id,
                     (membership, tenant) => new { tenant.Slug, tenant.Name, membership.Role })

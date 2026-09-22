@@ -63,6 +63,10 @@ internal static class DomainTypeConventions
             .HaveConversion<EmailConverter>()
             .HaveMaxLength(Email.MaxLength);
 
+        builder.Properties<UserName>()
+            .HaveConversion<UserNameConverter>()
+            .HaveMaxLength(UserName.MaxLength);
+
         builder.Properties<RefreshTokenHash>()
             .HaveConversion<RefreshTokenHashConverter>()
             .HaveMaxLength(RefreshTokenHash.Length)

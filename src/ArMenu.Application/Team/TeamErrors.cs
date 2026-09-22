@@ -10,6 +10,10 @@ public static class TeamErrors
     public static readonly Error EmailNotVerified = Error.Conflict(
         "team.email_not_verified", "Confirm your e-mail address before inviting people to the team.");
 
+    public static readonly Error PasswordManagedByMailbox = Error.Conflict(
+        "team.password_managed_by_mailbox",
+        "This person signs in with an e-mail address and resets their password by e-mail; it can also open other businesses, so it is not reset from here.");
+
     public static readonly Error PasswordTooShort = Error.Validation(
         "auth.password_too_short", FormattableString.Invariant($"Passwords must be at least {Authentication.PasswordPolicy.MinLength} characters long."));
 }

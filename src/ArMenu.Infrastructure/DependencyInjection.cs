@@ -137,6 +137,11 @@ public static class DependencyInjection
 
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddSingleton<IAccessTokenIssuer, JwtAccessTokenIssuer>();
+
+        services.AddOptions<Platform.PlatformAdministratorOptions>()
+            .Bind(configuration.GetSection(Platform.PlatformAdministratorOptions.SectionName))
+            .Validate(options => !string.IsNullOrWhiteSpace(options.InitialPassword), "PlatformAdministrator:InitialPassword cannot be empty.")
+            .ValidateOnStart();
         services.AddSingleton<IRefreshTokenCodec, RefreshTokenCodec>();
         services.AddSingleton<IInvitationTokenCodec, InvitationTokenCodec>();
         services.AddSingleton<IUserTokenCodec, UserTokenCodec>();

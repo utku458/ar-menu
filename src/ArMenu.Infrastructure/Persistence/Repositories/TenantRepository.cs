@@ -11,5 +11,8 @@ internal sealed class TenantRepository(ArMenuDbContext dbContext) : ITenantRepos
     public Task<bool> SlugExistsAsync(TenantSlug slug, CancellationToken cancellationToken = default) =>
         dbContext.Tenants.AnyAsync(tenant => tenant.Slug == slug, cancellationToken);
 
+    public Task<Tenant?> FindBySlugAsync(TenantSlug slug, CancellationToken cancellationToken = default) =>
+        dbContext.Tenants.SingleOrDefaultAsync(tenant => tenant.Slug == slug, cancellationToken);
+
     public void Add(Tenant tenant) => dbContext.Tenants.Add(tenant);
 }

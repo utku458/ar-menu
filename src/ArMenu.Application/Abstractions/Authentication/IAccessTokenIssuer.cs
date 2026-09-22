@@ -18,7 +18,9 @@ public sealed record AccessTokenSubject(
     string FullName,
     TenantId TenantId,
     TenantRole Role,
-    UserSessionId SessionId);
+    UserSessionId SessionId,
+    string? UserName = null,
+    bool IsPlatformAdmin = false);
 
 public sealed record AccessToken(string Value, DateTimeOffset ExpiresAt)
 {

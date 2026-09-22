@@ -48,6 +48,8 @@ internal static class TestConfiguration
         // See FakeEmailSender: tests read the outbox instead of racing each other's workers for it.
         ["Email:OutboxWorkerEnabled"] = "false",
         ["Dashboard:Url"] = DashboardUrl,
+        // Closed by default; many tests open their business through sign-up because it is the shortest way to one.
+        ["Onboarding:SignUpEnabled"] = "true",
         ["RateLimiting:AuthenticationPermitsPerMinute"] = "10000",
         ["RateLimiting:SignUpPermitsPerHour"] = "10000",
         ["RateLimiting:PublicMenuPermitsPerMinute"] = "10000",

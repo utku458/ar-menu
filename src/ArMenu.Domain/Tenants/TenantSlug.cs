@@ -23,11 +23,21 @@ public sealed partial record TenantSlug
         "logout", "mail", "menu", "panel", "register", "root", "settings", "signup", "static", "status", "support",
         "system", "www");
 
+    /// <summary>
+    /// The platform workspace's handle. It is reserved, so no business can ever claim it: the platform administrator's
+    /// sessions live here, and nothing else does (see <see cref="Tenant.CreatePlatform"/>).
+    /// </summary>
+    public const string PlatformValue = "system";
+
     private TenantSlug(string value) => Value = value;
+
+    public static TenantSlug Platform { get; } = new(PlatformValue);
 
     public string Value { get; }
 
     public bool IsReserved => ReservedValues.Contains(Value);
+
+    public bool IsPlatform => Value == PlatformValue;
 
     public static Result<TenantSlug> Create(string? value)
     {

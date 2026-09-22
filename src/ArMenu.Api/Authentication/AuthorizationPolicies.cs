@@ -1,3 +1,4 @@
+using ArMenu.Application.Abstractions.Authentication;
 using ArMenu.Domain.Memberships;
 using Microsoft.AspNetCore.Authorization;
 
@@ -14,6 +15,12 @@ internal static class AuthorizationPolicies
     /// <summary>Members allowed to invite, change and remove members: the owner.</summary>
     public const string TeamAdmin = "team:admin";
 
+    /// <summary>
+    /// The platform administrator: opens businesses and enters them. Checked by the token's claim here, and again
+    /// against the account by every command that changes something (see <c>PlatformAdministrator</c>).
+    /// </summary>
+    public const string PlatformAdmin = "platform:admin";
+
     public static IServiceCollection AddArMenuAuthorization(this IServiceCollection services)
     {
         services.AddAuthorizationBuilder()
@@ -28,7 +35,10 @@ internal static class AuthorizationPolicies
                 .RequireRole(nameof(TenantRole.Owner), nameof(TenantRole.Manager)))
             .AddPolicy(TeamAdmin, policy => policy
                 .RequireAuthenticatedUser()
-                .RequireRole(nameof(TenantRole.Owner)));
+                .RequireRole(nameof(TenantRole.Owner)))
+            .AddPolicy(PlatformAdmin, policy => policy
+                .RequireAuthenticatedUser()
+                .RequireClaim(ArMenuClaimTypes.PlatformAdmin, "true"));
 
         return services;
     }
