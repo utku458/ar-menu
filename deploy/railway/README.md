@@ -205,6 +205,31 @@ Then open the dashboard, create an account, add a business and a menu, and open 
 `https://<guest-domain>/m/<slug>`. Sign in, wait a few minutes and reload the dashboard: if you are still signed in,
 the same-origin proxy is doing its job.
 
+## The platform administrator
+
+The API creates its administrator on first start, with the user name and password of
+`PlatformAdministrator:UserName` and `PlatformAdministrator:InitialPassword` — `admin` and `admin1234` unless the
+service says otherwise. Set them per deployment with `PlatformAdministrator__UserName` and
+`PlatformAdministrator__InitialPassword`; both are read only while no administrator exists, and never again.
+
+**On a public address `admin1234` is a known credential.** Change it at the first sign-in (the platform page has the
+form), or set a different one before the first start. The account is not otherwise privileged in a way a password
+protects against: it opens businesses and runs every one of them.
+
+It signs in like anyone else, at the dashboard's one sign-in page, and lands on the platform page rather than in a
+business. From there it opens businesses — each with its owner's user name and password, which the administrator
+passes on — and steps into any of them to run it as the owner would.
+
+Two things follow from the administrator being a member of no business, and are deliberate:
+
+- Entering a business gives a short-lived access token, not a session. It cannot be refreshed, so the dashboard
+  enters again as needed, and the administrator's access to a business ends when its own session does.
+- The business's team never lists the administrator, and the history records what it changed under its own name.
+
+Self-service sign-up is closed unless `Onboarding__SignUpEnabled` is `true`: businesses are opened by the
+administrator. Password resets are done by the owner (for accounts with a user name) or by the administrator, since
+an account opened this way has no mailbox to send a link to.
+
 ## Serverless: what actually sleeps
 
 Railway can stop a service that has sent no outbound packet for five minutes and start it again when traffic
