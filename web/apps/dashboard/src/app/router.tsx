@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-router';
 
 import { readLastWorkspace, saveLastWorkspace } from '../auth/last-workspace.ts';
-import { workspaceFor } from '../auth/workspaces.ts';
+import { platformWorkspace, workspaceFor } from '../auth/workspaces.ts';
 import { managedMenuQuery } from '../features/menu/menu-api.ts';
 import { MenuEditorPage } from '../features/menu/MenuEditorPage.tsx';
 import { QrCodesPage } from '../features/qr/QrCodesPage.tsx';
@@ -25,8 +25,8 @@ import { ResetPasswordPage } from '../pages/ResetPasswordPage.tsx';
 import { VerifyEmailPage } from '../pages/VerifyEmailPage.tsx';
 import { NotFoundPage, RouteError } from '../pages/NotFoundPage.tsx';
 import { SignInPage } from '../pages/SignInPage.tsx';
-import { SignUpPage } from '../pages/SignUpPage.tsx';
-import { WorkspacePage } from '../pages/WorkspacePage.tsx';
+import { PlatformPage } from '../pages/PlatformPage.tsx';
+import { businessesQuery } from '../pages/platform-api.ts';
 import { AppShell } from './AppShell.tsx';
 import { meQuery } from './workspace.ts';
 
@@ -39,29 +39,37 @@ const rootRoute = createRootRouteWithContext<RouterContext>()({
   notFoundComponent: NotFoundPage,
 });
 
+/**
+ * Nothing to choose here any more: signing in with a user name finds the business by itself, so the root either
+ * resumes where this browser left off or asks who you are.
+ */
 const startRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  validateSearch: (search: Record<string, unknown>): { choose?: boolean | undefined } => ({
-    choose: search.choose === true || search.choose === 'true' ? true : undefined,
-  }),
-  beforeLoad: ({ search }) => {
+  beforeLoad: () => {
     const last = readLastWorkspace();
-    if (last !== undefined && search.choose !== true) {
-      // eslint-disable-next-line @typescript-eslint/only-throw-error -- redirects are thrown by design in TanStack Router.
-      throw redirect({ to: '/$workspace', params: { workspace: last } });
-    }
+    // eslint-disable-next-line @typescript-eslint/only-throw-error -- redirects are thrown by design in TanStack Router.
+    throw last === undefined
+      ? redirect({ to: '/sign-in' })
+      : redirect({ to: '/$workspace', params: { workspace: last } });
   },
-  component: WorkspacePage,
 });
 
-const signUpRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: 'signup',
-  component: SignUpPage,
-});
-
+/** One sign-in for the whole platform: the account decides which business, or the platform itself. */
 const signInRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'sign-in',
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { redirect?: string | undefined; ended?: boolean | undefined } => ({
+    redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
+    ended: search.ended === true || search.ended === 'true' ? true : undefined,
+  }),
+  component: SignInPage,
+});
+
+/** Where bookmarks and older links to a business's own sign-in page land. */
+const workspaceSignInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '$workspace/sign-in',
   validateSearch: (
@@ -70,13 +78,26 @@ const signInRoute = createRoute({
     redirect: typeof search.redirect === 'string' ? search.redirect : undefined,
     ended: search.ended === true || search.ended === 'true' ? true : undefined,
   }),
-  beforeLoad: ({ params }) => {
-    if (workspaceFor(params.workspace).session.isSignedIn) {
+  beforeLoad: ({ search }) => {
+    // eslint-disable-next-line @typescript-eslint/only-throw-error -- redirects are thrown by design in TanStack Router.
+    throw redirect({ to: '/sign-in', search });
+  },
+});
+
+/** The platform administrator's own pages; its session lives in the platform workspace, not a business. */
+const platformRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: 'platform',
+  beforeLoad: async ({ location }) => {
+    if ((await platformWorkspace().session.accessToken()) === undefined) {
       // eslint-disable-next-line @typescript-eslint/only-throw-error -- redirects are thrown by design in TanStack Router.
-      throw redirect({ to: '/$workspace/menu', params });
+      throw redirect({ to: '/sign-in', search: { redirect: location.href } });
     }
   },
-  component: SignInPage,
+  loader: ({ context }) =>
+    context.queryClient.query({ ...businessesQuery(platformWorkspace()), staleTime: 'static' }),
+  component: PlatformPage,
+  errorComponent: RouteError,
 });
 
 const forgotPasswordRoute = createRoute({
@@ -116,7 +137,7 @@ const workspaceRoute = createRoute({
     const workspace = workspaceFor(params.workspace);
     if ((await workspace.session.accessToken()) === undefined) {
       // eslint-disable-next-line @typescript-eslint/only-throw-error -- redirects are thrown by design in TanStack Router.
-      throw redirect({ to: '/$workspace/sign-in', params, search: { redirect: location.href } });
+      throw redirect({ to: '/sign-in', search: { redirect: location.href } });
     }
 
     saveLastWorkspace(workspace.slug);
@@ -227,8 +248,9 @@ export function createAppRouter(queryClient: QueryClient) {
   return createRouter({
     routeTree: rootRoute.addChildren([
       startRoute,
-      signUpRoute,
       signInRoute,
+      workspaceSignInRoute,
+      platformRoute,
       joinRoute,
       forgotPasswordRoute,
       resetPasswordRoute,

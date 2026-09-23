@@ -18,58 +18,66 @@ async function violations(page: Page) {
   return results.violations.map((violation) => violation.id);
 }
 
-test('the owner invites a manager by e-mail, in the language of the dashboard', async ({ page, api }) => {
+test('the owner opens an account for a manager, with a user name and a password', async ({ page, api }) => {
   await openTeam(page);
   await expect(page.getByText('Deniz Yılmaz (siz)')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Davet et' }).click();
-  const dialog = page.getByRole('dialog', { name: 'Ekibe davet et' });
-  await dialog.getByRole('textbox', { name: 'E-posta' }).fill('sef@armenu.test');
+  await page.getByRole('button', { name: 'Kullanıcı ekle' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Kullanıcı ekle' });
+  await dialog.getByRole('textbox', { name: 'Adınız soyadınız' }).fill('Mert Şef');
+  await dialog.getByRole('textbox', { name: 'Kullanıcı adı' }).fill('mert');
+  await dialog.getByRole('textbox', { name: 'Şifre' }).fill('mutfak-sifresi-2026');
   await dialog.getByRole('button', { name: /Rol/ }).click();
   await page.getByRole('option', { name: 'Yönetici' }).click();
   await expect(dialog.getByText('Menüyü, fiyatları ve 3D modelleri düzenler.')).toBeVisible();
-  await dialog.getByRole('button', { name: 'Daveti gönder' }).click();
+  await dialog.getByRole('button', { name: 'Kullanıcı ekle' }).click();
 
-  await expect(page.getByText('sef@armenu.test adresine davet gönderildi.')).toBeVisible();
-  expect(api.requestsTo('POST', '/api/v1/manage/team/invitations')[0]?.body).toEqual({
-    email: 'sef@armenu.test',
+  await expect(page.getByText('Kullanıcı eklendi: mert')).toBeVisible();
+  expect(api.requestsTo('POST', '/api/v1/manage/team/members')[0]?.body).toEqual({
+    fullName: 'Mert Şef',
+    userName: 'mert',
+    password: 'mutfak-sifresi-2026',
     role: 'Manager',
-    language: 'tr',
   });
-  await expect(page.getByRole('listitem').filter({ hasText: 'sef@armenu.test' })).toContainText(
-    '22 Eyl 2026 tarihine kadar geçerli',
-  );
+
+  // The list shows the name the person signs in with, not the placeholder address the account carries.
+  const added = page.getByRole('listitem').filter({ hasText: 'Mert Şef' });
+  await expect(added).toContainText('mert');
+  await expect(added).not.toContainText('@users.armenu.invalid');
   expect(await violations(page)).toEqual([]);
 });
 
-test('an e-mail that did not go out is said so, and can be sent again', async ({ page, api }) => {
-  api.emailDelivers = false;
+test('a user name that is taken is refused next to the field', async ({ page }) => {
   await openTeam(page);
 
-  await page.getByRole('button', { name: 'Davet et' }).click();
-  await page.getByRole('textbox', { name: 'E-posta' }).fill('garson@armenu.test');
-  await page.getByRole('button', { name: 'Daveti gönder' }).click();
-  await expect(
-    page.getByText('Davet kaydedildi ancak e-posta gönderilemedi.', { exact: false }),
-  ).toBeVisible();
+  await page.getByRole('button', { name: 'Kullanıcı ekle' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Kullanıcı ekle' });
+  await dialog.getByRole('textbox', { name: 'Adınız soyadınız' }).fill('İkinci Kasa');
+  await dialog.getByRole('textbox', { name: 'Kullanıcı adı' }).fill('staff');
+  await dialog.getByRole('textbox', { name: 'Şifre' }).fill('kasa-sifresi-2026');
+  await dialog.getByRole('button', { name: 'Kullanıcı ekle' }).click();
 
-  api.emailDelivers = true;
-  await page.getByRole('button', { name: 'Tekrar gönder: garson@armenu.test' }).click();
-  await expect(page.getByText('garson@armenu.test adresine davet gönderildi.')).toBeVisible();
-
-  // Inviting the same address again points at the list instead.
-  await page.getByRole('button', { name: 'Davet et' }).click();
-  await page.getByRole('textbox', { name: 'E-posta' }).fill('garson@armenu.test');
-  await page.getByRole('button', { name: 'Daveti gönder' }).click();
-  await expect(
-    page.getByRole('dialog').getByText('Bu adrese zaten bekleyen bir davet var.', { exact: false }),
-  ).toBeVisible();
+  await expect(dialog.getByText('Bu kullanıcı adı zaten kullanılıyor.', { exact: false })).toBeVisible();
 });
 
-test('members change role and leave the team after confirmation; invitations are withdrawn', async ({
-  page,
-  api,
-}) => {
+test('the owner gives a member who lost their password a new one', async ({ page, api }) => {
+  await openTeam(page);
+
+  await page.getByRole('button', { name: 'İşlemler: Ece Kaya' }).click();
+  await page.getByRole('menuitem', { name: 'Şifre sıfırla' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Şifre sıfırla' });
+  await expect(dialog.getByText('Ece Kaya (staff)', { exact: false })).toBeVisible();
+  await dialog.getByRole('textbox', { name: 'Yeni şifre' }).fill('yeni-kasa-sifresi-2026');
+  await dialog.getByRole('button', { name: 'Şifreyi değiştir' }).click();
+
+  await expect(page.getByText('Ece Kaya için yeni şifre belirlendi')).toBeVisible();
+  expect(
+    api.requestsTo('PUT', `/api/v1/manage/team/members/${ids.staffMembership}/password`)[0]?.body,
+  ).toEqual({ password: 'yeni-kasa-sifresi-2026' });
+});
+
+test('members change role and leave the team after confirmation', async ({ page, api }) => {
   await openTeam(page);
 
   await page.getByRole('button', { name: 'İşlemler: Ece Kaya' }).click();
@@ -88,13 +96,6 @@ test('members change role and leave the team after confirmation; invitations are
 
   // The owner has no actions: their role and place are not up for change.
   await expect(page.getByRole('button', { name: 'İşlemler: Deniz Yılmaz' })).toHaveCount(0);
-
-  await page.getByRole('button', { name: 'Davet et' }).click();
-  await page.getByRole('textbox', { name: 'E-posta' }).fill('kasa@armenu.test');
-  await page.getByRole('button', { name: 'Daveti gönder' }).click();
-  await page.getByRole('button', { name: 'Daveti geri al: kasa@armenu.test' }).click();
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Daveti geri al' }).click();
-  await expect(page.getByText('Bekleyen davet yok.')).toBeVisible();
 });
 
 test('staff see no team page, not even by its address', async ({ page }) => {

@@ -1,11 +1,11 @@
-import { getRouteApi, Link, useRouter } from '@tanstack/react-router';
+import { getRouteApi, useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Form } from 'react-aria-components';
 
 import { type FormErrors, formErrorsFrom, noFormErrors } from '../api/form-errors.ts';
 import { saveLastWorkspace } from '../auth/last-workspace.ts';
 import { safeRedirect } from '../auth/slug.ts';
-import { workspaceFor } from '../auth/workspaces.ts';
+import { signInWithUserName } from '../auth/workspaces.ts';
 import { useI18n } from '../i18n/i18n-context.ts';
 import { formText } from '../ui/form-data.ts';
 import { Button } from '../ui/Button.tsx';
@@ -13,11 +13,14 @@ import { TextField } from '../ui/fields.tsx';
 import { AuthLayout } from '../ui/layout.tsx';
 import { FormAlert } from '../ui/Modal.tsx';
 
-const route = getRouteApi('/$workspace/sign-in');
+const route = getRouteApi('/sign-in');
 
+/**
+ * One way in for everyone. The account decides where it leads: its own business for staff, the platform for the
+ * administrator — so nobody has to know, or type, the address of the business they work in.
+ */
 export function SignInPage() {
   const { messages, describeError } = useI18n();
-  const { workspace } = route.useParams();
   const { redirect, ended } = route.useSearch();
   const router = useRouter();
   const [errors, setErrors] = useState<FormErrors>(noFormErrors);
@@ -27,11 +30,20 @@ export function SignInPage() {
     const data = new FormData(form);
     setIsPending(true);
     try {
-      await workspaceFor(workspace).session.signIn(formText(data, 'email'), formText(data, 'password'));
-      saveLastWorkspace(workspace);
+      const { workspace, isPlatformAdmin } = await signInWithUserName(
+        formText(data, 'userName'),
+        formText(data, 'password'),
+      );
+
+      if (isPlatformAdmin) {
+        await router.navigate({ to: '/platform' });
+        return;
+      }
+
+      saveLastWorkspace(workspace.slug);
       const target = safeRedirect(redirect);
       if (target === undefined) {
-        await router.navigate({ to: '/$workspace/menu', params: { workspace } });
+        await router.navigate({ to: '/$workspace/menu', params: { workspace: workspace.slug } });
       } else {
         router.history.push(target);
       }
@@ -44,7 +56,7 @@ export function SignInPage() {
 
   return (
     <AuthLayout>
-      <h1 className="text-2xl font-semibold tracking-tight">{messages.signInTitle(workspace)}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{messages.signInHeading}</h1>
       {ended === true && (
         <p role="status" className="mt-3 rounded-lg bg-accent-soft px-3 py-2 text-sm">
           {messages.sessionEnded}
@@ -59,7 +71,7 @@ export function SignInPage() {
           void signIn(event.currentTarget);
         }}
       >
-        <TextField name="email" type="email" label={messages.email} autoComplete="username" isRequired />
+        <TextField name="userName" label={messages.userName} autoComplete="username" isRequired />
         <TextField
           name="password"
           type="password"
@@ -73,25 +85,7 @@ export function SignInPage() {
         </Button>
       </Form>
 
-      <p className="mt-4 text-sm">
-        <Link
-          to="/forgot-password"
-          search={{ workspace }}
-          className="font-medium text-accent underline-offset-4 hover:underline"
-        >
-          {messages.forgotPassword}
-        </Link>
-      </p>
-
-      <p className="mt-8 text-sm">
-        <Link
-          to="/"
-          search={{ choose: true }}
-          className="font-medium text-accent underline-offset-4 hover:underline"
-        >
-          {messages.otherBusiness}
-        </Link>
-      </p>
+      <p className="mt-6 text-sm text-ink-muted">{messages.forgotPasswordAskAdministrator}</p>
     </AuthLayout>
   );
 }

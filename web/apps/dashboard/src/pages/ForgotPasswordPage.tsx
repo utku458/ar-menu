@@ -1,5 +1,5 @@
 import { createApiClient } from '@armenu/api-client';
-import { getRouteApi, Link } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { Form } from 'react-aria-components';
 
@@ -13,11 +13,8 @@ import { TextField } from '../ui/fields.tsx';
 import { AuthLayout } from '../ui/layout.tsx';
 import { FormAlert } from '../ui/Modal.tsx';
 
-const route = getRouteApi('/forgot-password');
-
 export function ForgotPasswordPage() {
   const { messages, language, describeError } = useI18n();
-  const { workspace } = route.useSearch();
   const [sentTo, setSentTo] = useState<string | undefined>();
   const [errors, setErrors] = useState<FormErrors>(noFormErrors);
   const [isPending, setIsPending] = useState(false);
@@ -67,22 +64,18 @@ export function ForgotPasswordPage() {
         </p>
       )}
       <p className="mt-8 text-sm">
-        <BackLink workspace={workspace} />
+        <BackLink />
       </p>
     </AuthLayout>
   );
 }
 
-export function BackLink({ workspace }: { workspace: string | undefined }) {
+/** One sign-in serves every business now, so there is one place to go back to whatever brought you here. */
+export function BackLink() {
   const { messages } = useI18n();
-  const className = 'font-medium text-accent underline-offset-4 hover:underline';
 
-  return workspace === undefined ? (
-    <Link to="/" search={{ choose: true }} className={className}>
-      {messages.backToSignIn}
-    </Link>
-  ) : (
-    <Link to="/$workspace/sign-in" params={{ workspace }} className={className}>
+  return (
+    <Link to="/sign-in" className="font-medium text-accent underline-offset-4 hover:underline">
       {messages.backToSignIn}
     </Link>
   );

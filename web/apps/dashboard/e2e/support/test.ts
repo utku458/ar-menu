@@ -44,7 +44,7 @@ export { expect };
 
 export async function signIn(page: Page, role: 'owner' | 'staff' = 'owner'): Promise<void> {
   await page.goto(`${slug}/menu`);
-  await page.getByRole('textbox', { name: 'E-posta' }).fill(`${role}@${slug}.test`);
+  await page.getByRole('textbox', { name: 'Kullanıcı adı' }).fill(role);
   await page.getByRole('textbox', { name: 'Şifre' }).fill(password);
   await page.getByRole('button', { name: 'Giriş yap' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Menü' })).toBeVisible();

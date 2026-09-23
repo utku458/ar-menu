@@ -4,7 +4,6 @@ import { Form } from 'react-aria-components';
 
 import { type FormErrors, formErrorsFrom, noFormErrors } from '../api/form-errors.ts';
 import { ensureOk } from '../api/result.ts';
-import { readLastWorkspace } from '../auth/last-workspace.ts';
 import { takeTokenFromUrl } from '../auth/url-token.ts';
 import { env } from '../env.ts';
 import { useI18n } from '../i18n/i18n-context.ts';
@@ -23,7 +22,6 @@ export function ResetPasswordPage() {
   const [isDone, setIsDone] = useState(false);
   const [errors, setErrors] = useState<FormErrors>(noFormErrors);
   const [isPending, setIsPending] = useState(false);
-  const workspace = readLastWorkspace();
 
   const reset = async (form: HTMLFormElement) => {
     setIsPending(true);
@@ -79,7 +77,7 @@ export function ResetPasswordPage() {
         </Form>
       )}
       <p className="mt-8 text-sm">
-        <BackLink workspace={workspace} />
+        <BackLink />
       </p>
     </AuthLayout>
   );

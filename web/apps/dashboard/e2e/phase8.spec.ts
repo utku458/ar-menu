@@ -64,7 +64,8 @@ test('an owner with a team is told to hand over first; a member deletes their ac
   await dialog.getByRole('button', { name: 'Hesabımı sil' }).click();
 
   await expect(page.getByText('Hesabınız silindi.', { exact: false })).toBeVisible();
-  await expect(page).toHaveURL(/choose=true/);
+  // Nothing left to sign in to here; the way back in is the one sign-in there is.
+  await expect(page).toHaveURL(/\/sign-in/);
   expect(api.deleted.has('owner')).toBe(true);
 });
 

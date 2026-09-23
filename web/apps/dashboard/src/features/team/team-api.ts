@@ -47,6 +47,24 @@ export function useTeamMutations() {
       },
       onSuccess: refresh,
     }),
+    /** Opens an account with a user name and adds it to the team: the way in for staff with no e-mail address. */
+    addMember: useMutation({
+      mutationFn: async (body: { fullName: string; userName: string; password: string; role: TeamRole }) =>
+        unwrap(await api.POST('/api/v1/manage/team/members', { body })),
+      onSuccess: refresh,
+    }),
+    /** A new password for a user-name member who lost theirs; it ends every session they had. */
+    setMemberPassword: useMutation({
+      mutationFn: async ({ membershipId, password }: { membershipId: string; password: string }) => {
+        ensureOk(
+          await api.PUT('/api/v1/manage/team/members/{membershipId}/password', {
+            params: { path: { membershipId } },
+            body: { password },
+          }),
+        );
+      },
+      onSuccess: refresh,
+    }),
     changeRole: useMutation({
       mutationFn: async ({ membershipId, role }: { membershipId: string; role: TeamRole }) => {
         ensureOk(

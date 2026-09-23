@@ -5,8 +5,9 @@ test('a forgotten password is reset through the e-mailed link, without revealing
   page,
   api,
 }) => {
-  await page.goto(`${slug}/sign-in`);
-  await page.getByRole('link', { name: 'Şifremi unuttum' }).click();
+  // Reached by its address and by the links in older e-mails: sign-in no longer offers it, because accounts
+  // opened by an owner or the administrator have no mailbox to send a link to.
+  await page.goto('forgot-password');
 
   await page.getByRole('textbox', { name: 'E-posta' }).fill('someone@example.com');
   await page.getByRole('button', { name: 'Bağlantıyı gönder' }).click();
@@ -15,7 +16,7 @@ test('a forgotten password is reset through the e-mailed link, without revealing
     email: 'someone@example.com',
     language: 'tr',
   });
-  await expect(page.getByRole('link', { name: 'Girişe dön' })).toHaveAttribute('href', `/${slug}/sign-in`);
+  await expect(page.getByRole('link', { name: 'Girişe dön' })).toHaveAttribute('href', '/sign-in');
 
   await page.goto(`reset-password#${api.accountLinkToken}`);
   await expect(page.getByRole('heading', { level: 1, name: 'Yeni şifre belirleyin' })).toBeVisible();
@@ -70,6 +71,7 @@ test('the other businesses of the person are one click away', async ({ page }) =
   await expect(other).toContainText('Personel');
   await expect(page.getByRole('menuitem', { name: /Kadıköy Burger Lab/ })).toHaveCount(0);
 
+  // Each business keeps its own session, and there is one sign-in for all of them; it comes back here afterwards.
   await other.click();
-  await expect(page).toHaveURL(/\/bogazici-balikcisi\/sign-in/);
+  await expect(page).toHaveURL(/\/sign-in\?redirect=%2Fbogazici-balikcisi/);
 });

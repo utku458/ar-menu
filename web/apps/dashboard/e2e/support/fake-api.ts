@@ -84,6 +84,8 @@ export class FakeApi {
         userId: ids.staff,
         fullName: 'Ece Kaya',
         email: `staff@${slug}.test`,
+        // A user-name account: no mailbox, so the owner is the one who resets its password.
+        userName: 'staff',
         role: 'Staff',
         joinedAt: '2026-09-03T09:00:00Z',
         lastSignedInAt: null,
@@ -182,6 +184,21 @@ export class FakeApi {
 
     const auth = `/api/v1/tenants/${slug}/auth`;
     switch (`${request.method()} ${url.pathname}`) {
+      // The user-name sign-in the dashboard uses: no business in the URL, the answer says which one it found.
+      case 'POST /api/v1/auth/sign-in': {
+        const { userName, password: given } = body as { userName: string; password: string };
+        const person = userName === 'owner' ? 'owner' : userName === 'staff' ? 'staff' : undefined;
+        if (person === undefined || given !== password || this.deleted.has(person)) {
+          await problem(401, 'auth.invalid_credentials');
+          return;
+        }
+        await reply(
+          200,
+          { ...this.grant(person), workspace: slug, isPlatformAdmin: false },
+          { 'Set-Cookie': this.cookie(person) },
+        );
+        return;
+      }
       case `POST ${auth}/sign-in`: {
         const { email, password: given } = body as { email: string; password: string };
         const person =
@@ -347,6 +364,8 @@ export class FakeApi {
         emailVerified: this.emailVerified,
         fullName: 'Deniz Yılmaz',
         role,
+        userName: null,
+        isPlatformAdmin: false,
         tenant: this.tenant,
       };
       await reply(
@@ -593,6 +612,26 @@ export class FakeApi {
         isExpired: false,
       });
       await reply(201, { invitationId, emailSent: this.emailDelivers });
+    } else if (method === 'POST' && path === '/api/v1/manage/team/members') {
+      const { fullName, userName, role } = body as { fullName: string; userName: string; role: TeamRole };
+      if (this.team.members.some((member) => member.userName === userName)) {
+        await problem(409, 'user.user_name_taken');
+        return;
+      }
+      const membershipId = `0198a1f2-0000-7000-8000-${String(++this.sequence).padStart(12, '0')}`;
+      this.team.members.push({
+        id: membershipId,
+        userId: `0198a1f2-0000-7000-8000-${String(++this.sequence).padStart(12, '0')}`,
+        fullName,
+        email: `${userName}@users.armenu.invalid`,
+        userName,
+        role,
+        joinedAt: '2026-09-20T09:00:00Z',
+        lastSignedInAt: null,
+      });
+      await reply(201, { membershipId });
+    } else if (method === 'PUT' && path.endsWith('/password') && path.includes('/members/')) {
+      await reply(this.team.members.some((member) => member.id === id) ? 204 : 404);
     } else if (method === 'POST' && path.endsWith('/resend') && id !== undefined) {
       await reply(200, { invitationId: id, emailSent: this.emailDelivers });
     } else if (method === 'DELETE' && path.includes('/invitations/')) {

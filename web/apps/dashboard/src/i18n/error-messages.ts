@@ -98,6 +98,15 @@ const errors: ErrorMessages = {
   'user.email_required': ['E-posta zorunlu.', 'The email is required.'],
   'user.email_taken': ['Bu e-posta ile zaten bir hesap var.', 'An account with this email already exists.'],
   'user.full_name_required': ['Ad soyad zorunlu.', 'Your name is required.'],
+  'user.user_name_taken': [
+    'Bu kullanıcı adı zaten kullanılıyor.',
+    'An account with this user name already exists.',
+  ],
+  'user.user_name_required': ['Kullanıcı adı zorunlu.', 'A user name is required.'],
+  'user.user_name_invalid': [
+    'Kullanıcı adı 3-32 karakter olmalı: küçük harf, rakam, nokta, tire veya alt çizgi; harf ya da rakamla başlayıp bitmeli.',
+    'User names are 3-32 characters: lower-case letters, digits, dots, hyphens or underscores, starting and ending with a letter or digit.',
+  ],
   'auth.password_too_short': [
     'Şifre en az 12 karakter olmalı.',
     'The password must be at least 12 characters.',
@@ -144,6 +153,18 @@ const errors: ErrorMessages = {
     'The invitation was not found; it may have been withdrawn.',
   ],
   'membership.already_member': ['Bu kişi zaten ekipte.', 'This person is already on the team.'],
+  'team.password_managed_by_mailbox': [
+    'Bu kişi e-posta adresiyle giriş yapıyor ve şifresini kendisi sıfırlar; başka işletmelerde de olabileceği için buradan değiştirilemez.',
+    'This person signs in with an e-mail address and resets their own password; it can also open other businesses, so it is not reset from here.',
+  ],
+  'platform.not_administrator': [
+    'Bu işlemi yalnızca platform yöneticisi yapabilir.',
+    'Only the platform administrator can do this.',
+  ],
+  'platform.business_not_found': [
+    'Bu kimliğe sahip etkin bir işletme yok.',
+    'No active business has this id.',
+  ],
   'membership.not_found': [
     'Üye bulunamadı; ekipten çıkarılmış olabilir.',
     'The member was not found; they may have been removed.',

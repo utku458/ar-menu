@@ -57,7 +57,7 @@ export function VerifyEmailPage() {
       )}
       <p className="mt-8 text-sm">
         {workspace === undefined ? (
-          <Link to="/" search={{ choose: true }} className={linkClass}>
+          <Link to="/sign-in" className={linkClass}>
             {messages.continueToDashboard}
           </Link>
         ) : (

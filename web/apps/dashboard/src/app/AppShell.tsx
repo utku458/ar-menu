@@ -228,7 +228,23 @@ export function AppShell() {
         </div>
       </header>
 
-      {!user.emailVerified && (
+      {/*
+        The administrator is not a member here and this session cannot be refreshed the ordinary way, so the way back
+        to the platform has to be on screen rather than in the browser's history.
+      */}
+      {workspace.isAdministered && (
+        <div data-print-hidden role="status" className="border-b border-line bg-accent-soft">
+          <p className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 text-sm">
+            <span>{messages.administeringBusiness}</span>
+            <Link to="/platform" className="font-medium text-accent underline-offset-4 hover:underline">
+              {messages.backToPlatform}
+            </Link>
+          </p>
+        </div>
+      )}
+
+      {/* A user-name account has a placeholder address no mail reaches: there is nothing for it to verify. */}
+      {!user.emailVerified && user.userName === null && (
         <div data-print-hidden role="status" className="border-b border-line bg-accent-soft">
           <p className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2 text-sm">
             <span>{messages.verifyEmailBanner(user.email)}</span>

@@ -66,9 +66,41 @@ export interface Messages {
   readonly createBusiness: string;
 
   readonly signInTitle: (business: string) => string;
+  readonly signInHeading: string;
+  readonly userName: string;
+  readonly userNameHint: string;
+  readonly passwordHint: string;
+  readonly forgotPasswordAskAdministrator: string;
   readonly email: string;
   readonly password: string;
   readonly signIn: string;
+
+  /* The platform administrator's own pages. */
+  readonly platformTitle: string;
+  readonly platformDescription: string;
+  readonly openBusiness: string;
+  readonly noBusinesses: string;
+  readonly noBusinessesBody: string;
+  readonly businessStatus: (status: string) => string;
+  readonly manage: string;
+  readonly manageBusiness: (business: string) => string;
+  readonly businessOpened: (slug: string) => string;
+  readonly menuAddressHint: string;
+  readonly ownerAccountHint: string;
+  readonly ownerFullName: string;
+  readonly administeringBusiness: string;
+  readonly backToPlatform: string;
+
+  /* Team members with a user name, for staff who have no e-mail address to be invited at. */
+  readonly addMember: string;
+  readonly memberAdded: (userName: string) => string;
+  readonly resetMemberPassword: string;
+  readonly resetMemberPasswordIntro: (member: string, userName: string) => string;
+  readonly memberPasswordReset: (member: string) => string;
+  readonly changePassword: string;
+  readonly changePasswordIntro: string;
+  readonly currentPassword: string;
+  readonly passwordChangedSignInAgain: string;
   readonly otherBusiness: string;
   readonly sessionEnded: string;
   readonly forgotPassword: string;
@@ -352,9 +384,48 @@ const tr: Messages = {
   createBusiness: 'İşletmenizi oluşturun',
 
   signInTitle: (business) => `${business} için giriş yapın`,
+  signInHeading: 'Giriş yapın',
+  userName: 'Kullanıcı adı',
+  userNameHint: 'Küçük harf, rakam, nokta, tire veya alt çizgi. Giriş yaparken bu yazılır.',
+  passwordHint: 'En az 12 karakter.',
+  forgotPasswordAskAdministrator: 'Şifrenizi unuttuysanız işletme sahibinize ya da yöneticinize başvurun.',
   email: 'E-posta',
   password: 'Şifre',
   signIn: 'Giriş yap',
+
+  platformTitle: 'İşletmeler',
+  platformDescription: 'Platformdaki tüm işletmeler. Yeni bir işletme açın ya da birine girip yönetin.',
+  openBusiness: 'Yeni işletme',
+  noBusinesses: 'Henüz işletme yok',
+  noBusinessesBody: 'İlk işletmeyi açtığınızda sahibi, verdiğiniz kullanıcı adı ve şifreyle giriş yapabilir.',
+  businessStatus: (status) =>
+    status === 'Active'
+      ? 'Etkin'
+      : status === 'Suspended'
+        ? 'Askıda'
+        : status === 'Closed'
+          ? 'Kapalı'
+          : status,
+  manage: 'Yönet',
+  manageBusiness: (business) => `${business} işletmesini yönet`,
+  businessOpened: (slug) => `İşletme açıldı: /m/${slug}`,
+  menuAddressHint: 'Misafirlerin menüyü açtığı adres. Sonradan değiştirilemez.',
+  ownerAccountHint: 'İşletme sahibinin hesabı. Kullanıcı adını ve şifreyi kendisine siz ileteceksiniz.',
+  ownerFullName: 'Sahibin adı soyadı',
+  administeringBusiness: 'Bu işletmeyi platform yöneticisi olarak yönetiyorsunuz.',
+  backToPlatform: 'İşletmelere dön',
+
+  addMember: 'Kullanıcı ekle',
+  memberAdded: (userName) => `Kullanıcı eklendi: ${userName}`,
+  resetMemberPassword: 'Şifre sıfırla',
+  resetMemberPasswordIntro: (member, userName) =>
+    `${member} (${userName}) için yeni bir şifre belirleyin. Açık oturumları kapanır ve yeni şifreyi kendisine siz ileteceksiniz.`,
+  memberPasswordReset: (member) => `${member} için yeni şifre belirlendi`,
+  changePassword: 'Şifre değiştir',
+  changePasswordIntro:
+    'Yeni şifre belirlediğinizde tüm oturumlarınız kapanır ve tekrar giriş yapmanız gerekir.',
+  currentPassword: 'Mevcut şifre',
+  passwordChangedSignInAgain: 'Şifreniz değişti. Yeni şifrenizle giriş yapın.',
   otherBusiness: 'Başka bir işletme',
   sessionEnded: 'Oturumunuz sona erdi. Lütfen tekrar giriş yapın.',
   forgotPassword: 'Şifremi unuttum',
@@ -737,9 +808,42 @@ const en: Messages = {
   createBusiness: 'Create your business',
 
   signInTitle: (business) => `Sign in to ${business}`,
+  signInHeading: 'Sign in',
+  userName: 'User name',
+  userNameHint: 'Lower-case letters, digits, dots, hyphens or underscores. This is what you sign in with.',
+  passwordHint: 'At least 12 characters.',
+  forgotPasswordAskAdministrator:
+    'Forgotten your password? Ask the owner of your business, or the administrator.',
   email: 'Email',
   password: 'Password',
   signIn: 'Sign in',
+
+  platformTitle: 'Businesses',
+  platformDescription: 'Every business on the platform. Open a new one, or step into one to run it.',
+  openBusiness: 'New business',
+  noBusinesses: 'No businesses yet',
+  noBusinessesBody:
+    'Once you open the first one, its owner signs in with the user name and password you set.',
+  businessStatus: (status) => status,
+  manage: 'Manage',
+  manageBusiness: (business) => `Manage ${business}`,
+  businessOpened: (slug) => `Business opened: /m/${slug}`,
+  menuAddressHint: 'Where guests open the menu. It cannot be changed later.',
+  ownerAccountHint: "The owner's account. You pass the user name and password on to them yourself.",
+  ownerFullName: "Owner's full name",
+  administeringBusiness: 'You are running this business as the platform administrator.',
+  backToPlatform: 'Back to businesses',
+
+  addMember: 'Add user',
+  memberAdded: (userName) => `User added: ${userName}`,
+  resetMemberPassword: 'Reset password',
+  resetMemberPasswordIntro: (member, userName) =>
+    `Set a new password for ${member} (${userName}). Their open sessions end, and you pass the new password on to them yourself.`,
+  memberPasswordReset: (member) => `New password set for ${member}`,
+  changePassword: 'Change password',
+  changePasswordIntro: 'Setting a new password ends all your sessions, so you will sign in again.',
+  currentPassword: 'Current password',
+  passwordChangedSignInAgain: 'Your password has changed. Sign in with the new one.',
   otherBusiness: 'A different business',
   sessionEnded: 'Your session has ended. Please sign in again.',
   forgotPassword: 'Forgot password?',

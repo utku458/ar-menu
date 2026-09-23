@@ -9,6 +9,7 @@ import { forgetLastWorkspace } from '../../auth/last-workspace.ts';
 import { useI18n } from '../../i18n/i18n-context.ts';
 import { Button, LinkButton } from '../../ui/Button.tsx';
 import { Card, PageHeader } from '../../ui/layout.tsx';
+import { ChangePasswordCard } from './ChangePasswordCard.tsx';
 import { PasswordConfirmDialog } from '../../ui/PasswordConfirmDialog.tsx';
 import { useNotify } from '../../ui/toaster-context.ts';
 import { accountDeletionQuery } from './account-api.ts';
@@ -41,10 +42,13 @@ export function AccountPage() {
           <dl className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-[max-content_1fr] sm:gap-x-6">
             <dt className="text-ink-muted">{messages.fullName}</dt>
             <dd className="font-medium">{user.fullName}</dd>
-            <dt className="text-ink-muted">{messages.email}</dt>
-            <dd className="font-medium break-all">{user.email}</dd>
+            {/* A user-name account signs in with its name; its address is a placeholder and would only confuse. */}
+            <dt className="text-ink-muted">{user.userName === null ? messages.email : messages.userName}</dt>
+            <dd className="font-medium break-all">{user.userName ?? user.email}</dd>
           </dl>
         </Card>
+
+        <ChangePasswordCard workspace={workspace} />
 
         <Card className="p-5">
           <h2 className="text-base font-semibold">{messages.deleteAccount}</h2>

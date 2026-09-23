@@ -1,21 +1,19 @@
 import { slug } from './support/fake-api.ts';
 import { expect, signIn, test } from './support/test.ts';
 
-test('the business address is entered with the keyboard and leads to its sign-in', async ({ page }) => {
+test('an unknown visitor is asked who they are, without naming a business', async ({ page }) => {
   await page.goto('');
 
-  await page.getByRole('textbox', { name: 'İşletme adresi' }).fill('Kadıköy Burger Lab');
-  await page.keyboard.press('Enter');
-
-  await expect(page).toHaveURL(new RegExp(`/${slug}/sign-in`));
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(`${slug} için giriş yapın`);
+  await expect(page).toHaveURL(/\/sign-in/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Giriş yapın');
+  await expect(page.getByRole('textbox', { name: 'Kullanıcı adı' })).toBeVisible();
 });
 
 test('a wrong password is explained, the right one opens the menu', async ({ page }) => {
   await page.goto(`${slug}/menu`);
   await expect(page).toHaveURL(/sign-in/);
 
-  await page.getByRole('textbox', { name: 'E-posta' }).fill(`owner@${slug}.test`);
+  await page.getByRole('textbox', { name: 'Kullanıcı adı' }).fill('owner');
   await page.getByRole('textbox', { name: 'Şifre' }).fill('not-the-password');
   await page.getByRole('button', { name: 'Giriş yap' }).click();
 

@@ -14,7 +14,7 @@ import { Card, PageHeader } from '../../ui/layout.tsx';
 import { ConfirmDialog } from '../../ui/Modal.tsx';
 import { PasswordConfirmDialog } from '../../ui/PasswordConfirmDialog.tsx';
 import { useNotify } from '../../ui/toaster-context.ts';
-import { InviteDialog } from './InviteDialog.tsx';
+import { AddMemberDialog, ResetMemberPasswordDialog } from './MemberDialogs.tsx';
 import { teamQuery, useTeamMutations } from './team-api.ts';
 
 const menuItem = 'cursor-default rounded-md px-3 py-2 text-sm outline-none data-[focused]:bg-sunken';
@@ -33,7 +33,8 @@ export function TeamPage() {
   const navigate = useNavigate();
   const [successor, setSuccessor] = useState<TeamMemberResponse | undefined>();
   const notify = useNotify();
-  const [isInviting, setIsInviting] = useState(false);
+  const [isAddingMember, setIsAddingMember] = useState(false);
+  const [resetting, setResetting] = useState<TeamMemberResponse | undefined>();
   const [confirmation, setConfirmation] = useState<Confirmation | undefined>();
 
   const roleName = (role: string) => messages.roles[role] ?? role;
@@ -73,11 +74,11 @@ export function TeamPage() {
           <Button
             variant="primary"
             onPress={() => {
-              setIsInviting(true);
+              setIsAddingMember(true);
             }}
           >
             <PlusIcon />
-            {messages.inviteMember}
+            {messages.addMember}
           </Button>
         }
       />
@@ -102,7 +103,9 @@ export function TeamPage() {
                     )}
                   </p>
                   <p className="truncate text-xs text-ink-muted">
-                    {member.email} · {messages.joinedOn(formatDate(member.joinedAt, language))}
+                    {/* A user-name account's address is a placeholder no mail reaches; the name is what it signs in with. */}
+                    {member.userName ?? member.email} ·{' '}
+                    {messages.joinedOn(formatDate(member.joinedAt, language))}
                   </p>
                 </div>
                 <span className="rounded bg-sunken px-2 py-0.5 text-xs font-medium">
@@ -136,6 +139,11 @@ export function TeamPage() {
                             return;
                           }
 
+                          if (action === 'password') {
+                            setResetting(member);
+                            return;
+                          }
+
                           const role = member.role === 'Manager' ? 'Staff' : 'Manager';
                           changeRole.mutate(
                             { membershipId: member.id, role },
@@ -154,6 +162,12 @@ export function TeamPage() {
                         <MenuItem id="ownership" className={menuItem}>
                           {messages.transferOwnership}
                         </MenuItem>
+                        {/* Only user-name accounts: an e-mail account resets its own, and may belong elsewhere too. */}
+                        {member.userName !== null && (
+                          <MenuItem id="password" className={menuItem}>
+                            {messages.resetMemberPassword}
+                          </MenuItem>
+                        )}
                         <MenuItem id="remove" className={`${menuItem} text-danger`}>
                           {messages.removeMember}
                         </MenuItem>
@@ -234,10 +248,19 @@ export function TeamPage() {
         </Card>
       </div>
 
-      {isInviting && (
-        <InviteDialog
+      {isAddingMember && (
+        <AddMemberDialog
           onClose={() => {
-            setIsInviting(false);
+            setIsAddingMember(false);
+          }}
+        />
+      )}
+
+      {resetting !== undefined && (
+        <ResetMemberPasswordDialog
+          member={resetting}
+          onClose={() => {
+            setResetting(undefined);
           }}
         />
       )}
