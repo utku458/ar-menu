@@ -16,8 +16,8 @@ peerDependencyRules:
 catalog:
   # Runtime
   '@google/model-viewer': 4.3.1
-  '@tanstack/react-query': 5.102.8
-  '@tanstack/react-router': 1.170.36
+  '@tanstack/react-query': 5.103.2
+  '@tanstack/react-router': 1.170.38
   # Guest app only, and only through `m` + LazyMotion (see apps/guest/src/ui/MotionFeatures.tsx).
   motion: 13.4.0
   openapi-fetch: 0.17.0
@@ -25,12 +25,12 @@ catalog:
   react-aria-components: 1.21.1
   react-dom: 19.3.0
   # model-viewer 4.3 requires three 0.183.x.
-  three: 0.183.2
+  three: 0.186.0
   uqr: 0.1.3
 
   # Build
   # babel-plugin-react-compiler 1.0 is built on Babel 7.
-  '@babel/core': 7.29.7
+  '@babel/core': 8.0.6
   '@rolldown/plugin-babel': 0.2.4
   '@tailwindcss/vite': 4.3.3
   '@vitejs/plugin-react': 6.1.1
@@ -38,7 +38,7 @@ catalog:
   openapi-typescript: 7.13.0
   tailwindcss: 4.3.3
   # typescript-eslint supports TypeScript < 6.1; TypeScript 7 (native) is not supported by it yet.
-  typescript: 6.0.3
+  typescript: 7.0.2
   vite: 8.3.0
 
   # Asset pipeline
@@ -47,31 +47,31 @@ catalog:
   '@gltf-transform/functions': 4.5.0
   draco3dgltf: 1.5.7
   # The encoder must not be newer than the decoder guests run: three 0.183 bundles meshoptimizer 1.0.
-  meshoptimizer: 1.0.1
+  meshoptimizer: 1.2.0
   playwright-core: 1.63.0
   sharp: 0.35.4
 
   # Types
   '@types/draco3dgltf': 1.4.3
-  '@types/node': 26.5.1
+  '@types/node': 26.6.2
   '@types/react': 19.3.0
   '@types/react-dom': 19.3.0
-  '@types/three': 0.183.1
+  '@types/three': 0.186.0
 
   # Quality
   '@axe-core/playwright': 4.13.0
   '@eslint/js': 10.0.1
   '@playwright/test': 1.63.0
-  '@tanstack/eslint-plugin-query': 5.102.8
-  eslint: 10.10.0
+  '@tanstack/eslint-plugin-query': 5.103.2
+  eslint: 10.11.0
   eslint-plugin-jsx-a11y: 6.10.2
   eslint-plugin-react-hooks: 7.1.1
-  eslint-plugin-react-refresh: 0.5.6
+  eslint-plugin-react-refresh: 0.5.7
   globals: 17.12.0
-  prettier: 3.9.6
+  prettier: 3.9.8
   prettier-plugin-tailwindcss: 0.8.1
-  typescript-eslint: 8.70.0
-  vitest: 5.0.0
+  typescript-eslint: 8.70.1
+  vitest: 5.0.1
 
 minimumReleaseAgeExclude:
   - '@tanstack/history@1.162.4'
