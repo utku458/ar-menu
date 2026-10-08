@@ -3,7 +3,7 @@
 #
 # Playwright's image ships Node.js and the Chromium build playwright-core expects, with the libraries WebGL needs
 # (SwiftShader renders without a GPU). The service runs its TypeScript sources directly with Node's type stripping.
-FROM mcr.microsoft.com/playwright:v1.63.0-noble
+FROM mcr.microsoft.com/playwright:v1.64.0-noble
 
 ENV NODE_ENV=production \
     PNPM_HOME=/pnpm \
