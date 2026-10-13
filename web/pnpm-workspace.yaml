@@ -49,7 +49,7 @@ catalog:
   # The encoder must not be newer than the decoder guests run: three 0.183 bundles meshoptimizer 1.0.
   meshoptimizer: 1.0.1
   playwright-core: 1.63.0
-  sharp: 0.35.4
+  sharp: 0.35.5
 
   # Types
   '@types/draco3dgltf': 1.4.3
