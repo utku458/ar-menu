@@ -8,7 +8,7 @@
 # The VITE_* variables are compiled into the bundle and into its content security policy, so an image belongs to
 # one environment. Deployments to a CDN upload the same files and apply the same headers.
 
-FROM node:24-alpine AS build
+FROM node:25-alpine AS build
 ARG APP
 ENV PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH
