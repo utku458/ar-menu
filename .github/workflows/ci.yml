@@ -163,7 +163,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # Pull requests build the images; pushes to main also publish them, tagged with the commit.
-      - uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.file }}
