@@ -2,8 +2,8 @@
 # Renders SeaweedFS's identity file, then hands over to the server.
 #
 # deploy/storage/s3.json is committed with development credentials and mounted by Docker Compose. Neither is possible
-# here: a Railway service has no bind mounts, and the credentials are real. The identities are therefore written at
-# start-up from the service's own variables, so the only place the secret exists is Railway's variable store.
+# here: the credentials are real and must not live in the repository. The identities are therefore written at
+# start-up from the application's own variables, so the only place the secret exists is Coolify's variable store.
 #
 # The identity list is otherwise the same as the Compose one: one account the API signs with, and anonymous read on
 # the assets bucket alone, which is what lets a guest's browser fetch a poster or a model without a signature while
@@ -13,7 +13,7 @@ set -eu
 : "${STORAGE_ACCESS_KEY:?set STORAGE_ACCESS_KEY to the access key the API signs with}"
 : "${STORAGE_SECRET_KEY:?set STORAGE_SECRET_KEY to the matching secret key}"
 
-# Railway injects PORT; the S3 endpoint is the only port this service publishes.
+# PORT may be set in Coolify; the S3 endpoint is the only port this service publishes.
 PORT="${PORT:-8333}"
 DATA_DIR="${STORAGE_DATA_DIR:-/data}"
 

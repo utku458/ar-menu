@@ -1,13 +1,13 @@
 #!/bin/sh
-# Creates ArMenu's two buckets and their CORS rules on the Railway storage service.
+# Creates ArMenu's two buckets and their CORS rules on the storage application in Coolify.
 #
 # Buckets and CORS are infrastructure, provisioned before the API runs — the API only creates them for itself in
 # Development (see deploy/compose.production.yml, where a storage-setup container does exactly this). Run once from
 # the repository root, after the storage service has a public domain:
 #
-#   STORAGE_URL=https://armenu-storage-production.up.railway.app \
-#   DASHBOARD_URL=https://armenu-dashboard-production.up.railway.app \
-#   AWS_ACCESS_KEY_ID='…' AWS_SECRET_ACCESS_KEY='…' deploy/railway/provision-storage.sh
+#   STORAGE_URL=https://armenu-storage.46.225.37.55.sslip.io \
+#   DASHBOARD_URL=https://armenu-dashboard.46.225.37.55.sslip.io \
+#   AWS_ACCESS_KEY_ID='…' AWS_SECRET_ACCESS_KEY='…' deploy/coolify/provision-storage.sh
 #
 # The keys are the STORAGE_ACCESS_KEY / STORAGE_SECRET_KEY of the storage service.
 #

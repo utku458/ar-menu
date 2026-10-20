@@ -173,3 +173,31 @@ jobs:
           tags: ghcr.io/${{ github.repository_owner }}/armenu-${{ matrix.image }}:${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+  # ── Deploy: only once every check above has passed ──────────────────────
+  # Coolify's own push-triggered auto deploy is off for these apps; this job
+  # is the only path to production. The script waits for Coolify's build, so
+  # a deployment that fails on the server turns this job red as well.
+  deploy:
+    name: Deploy (Coolify)
+    needs: [dotnet, web, alerts, images]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    # A deployment is real work on the server: never cancel it, queue the next one.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - name: Deploy on Coolify and wait for the result
+        env:
+          COOLIFY_DEPLOY_URL: ${{ secrets.COOLIFY_DEPLOY_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+        run: bash .github/scripts/coolify-deploy.sh
+
