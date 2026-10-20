@@ -1,26 +1,30 @@
 #!/bin/sh
-# Prepares a Railway PostgreSQL database for ArMenu: the runtime role, then the schema.
+# Prepares ArMenu's PostgreSQL database on Coolify: the runtime role, then the schema.
 #
 # Schema changes ship as a reviewed migration bundle run before the new API starts, never as a side effect of
-# application startup (see src/ArMenu.Api/Dockerfile). Railway has no managed database with init scripts and no
-# migration job, so this is that step, run by hand from a machine with Docker from the repository root:
+# application startup (see src/ArMenu.Api/Dockerfile). Coolify runs no migration job, so this is that step, run by hand
+# from a machine with Docker, from the repository root, BEFORE the API version that needs the new schema deploys.
 #
-#   PGHOST=centerbeam.proxy.rlwy.net PGPORT=12345 PGUSER=postgres PGPASSWORD='…' PGDATABASE=railway \
-#   ARMENU_APP_PASSWORD='…' deploy/railway/migrate.sh
+#   ssh -N -L 15432:<postgres-container-ip>:5432 root@46.225.37.55 &   # the database is not public
+#   PGHOST=host.docker.internal PGPORT=15432 PGUSER=postgres PGPASSWORD='…' PGDATABASE=railway \
+#   ARMENU_APP_PASSWORD='…' deploy/coolify/migrate.sh
 #
-# The PG* values are the PUBLIC proxy ones from the Postgres service's "Connect" tab: postgres.railway.internal is
-# only reachable from inside the project. ARMENU_APP_PASSWORD is the password the API will use; put the same value
+# The database is reachable only inside the server's Docker network, hence the SSH tunnel; host.docker.internal is
+# how the psql and migration containers below reach that tunnel on the machine running this script. The container
+# IP comes from `docker inspect <container> --format '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}'`.
+# The database is named `railway` for historical reasons (kept when the data moved).
+# ARMENU_APP_PASSWORD is the password the API will use; put the same value
 # in the API service's connection string.
 #
 # Re-running is safe: the role is created once and its password reset, and the bundle applies only new migrations.
 set -eu
 
-: "${PGHOST:?set PGHOST to the public proxy host}"
-: "${PGPORT:?set PGPORT to the public proxy port}"
+: "${PGHOST:?set PGHOST to the tunnel host, usually host.docker.internal}"
+: "${PGPORT:?set PGPORT to the local tunnel port}"
 # No apostrophes in these messages: inside ${VAR:?...} the shell reads one as an opening quote.
 : "${PGUSER:?set PGUSER to the schema owner, usually postgres}"
 : "${PGPASSWORD:?set PGPASSWORD}"
-: "${PGDATABASE:?set PGDATABASE (usually railway)}"
+: "${PGDATABASE:?set PGDATABASE (the database is named railway)}"
 : "${ARMENU_APP_PASSWORD:?set ARMENU_APP_PASSWORD to the password the API will connect with}"
 
 DB_SSL="${DB_SSL:-Require}"
